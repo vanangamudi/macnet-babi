@@ -31,12 +31,33 @@ SELF_NAME = os.path.basename(__file__).replace('.py', '')
 
 import sys
 import pickle
+import argparse
 if __name__ == '__main__':
 
-    if sys.argv[1]:
-        log.addFilter(CMDFilter(sys.argv[1]))
+    parser = argparse.ArgumentParser(description='MACNet variant 2')
+    parser.add_argument('-p','--hpconfig',
+                        help='path to the hyperparameters config file',
+                        default='hpconfig.py', dest='hpconfig')
+    parser.add_argument('--log-filters',
+                        help='log filters',
+                        dest='log_filter')
 
-    ROOT_DIR = initialize_task(SELF_NAME)
+    subparsers = parser.add_subparsers(help='commands')
+    train_parser = subparsers.add_parser('train', help='starts training')
+    train_parser.add_argument('--train', default='train', dest='task')
+    
+    predict_parser = subparsers.add_parser('predict',
+                                help='''starts a cli interface for running predictions 
+                                in inputs with best model from last training run''')
+    predict_parser.add_argument('--predict', default='predict', dest='task')
+    predict_parser.add_argument('--show-plot', action='store_true', dest='show_plot')
+    predict_parser.add_argument('--save-plot', action='store_true',  dest='save_plot')
+    args = parser.parse_args()
+    print(args)
+    if args.log_filter:
+        log.addFilter(CMDFilter(args.log_filter))
+
+    ROOT_DIR = initialize_task(args.hpconfig)
 
     print('====================================')
     print(ROOT_DIR)
@@ -44,7 +65,7 @@ if __name__ == '__main__':
         
     if config.CONFIG.flush:
         log.info('flushing...')
-        dataset = load_data()
+        dataset = load_data(100)
         pickle.dump(dataset, open('{}__cache.pkl'.format(SELF_NAME), 'wb'))
     else:
         dataset = pickle.load(open('{}__cache.pkl'.format(SELF_NAME), 'rb'))
@@ -65,10 +86,10 @@ if __name__ == '__main__':
     if config.CONFIG.cuda:  model = model.cuda()        
     print('**** the model', model)
     
-    if 'train' in sys.argv:
-        train(config, sys.argv, SELF_NAME, ROOT_DIR, model, dataset)
+    if args.task == 'train':
+        train(config, args, SELF_NAME, ROOT_DIR, model, dataset)
         
-    if 'predict' in sys.argv:
+    if args.task == 'predict':
         print('=========== PREDICTION ==============')
         model.eval()
         count = 0
@@ -78,7 +99,7 @@ if __name__ == '__main__':
             if not input_string:
                 continue
             
-            predict(config, sys.argv, model, input_string, dataset)            
+            predict(config, args, model, input_string, dataset)            
             print('Done')
                 
                         
