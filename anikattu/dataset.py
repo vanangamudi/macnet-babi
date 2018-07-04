@@ -20,16 +20,15 @@ def split_dataset(dataset, ratio=0.8):
     pivot = ratio * len(dataset)
     return dataset[:pivot], dataset[pivot:]
 
-class NLPDatasetList:
-    def __init__(self, name, datasets):
+class DatasetList:
+    def __init__(self, name, datasets, portion_percent=1.0, sort_key=None):
         self.name = name
-        
+        self.portion_percent = portion_percent
         self.datasets = list(datasets)
-
         self.trainset, self.testset = [], []
         for dataset in self.datasets:
-            self.trainset.extend(dataset.trainset)
-            self.testset.extend(dataset.testset)
+            self.trainset.extend(self.portion(dataset.trainset))
+            self.testset.extend(self.portion(dataset.testset))
 
         self.trainset_dict = {i.id:i for i in self.trainset}
         self.testset_dict = {i.id:i for i in self.testset}
@@ -37,9 +36,17 @@ class NLPDatasetList:
         random.shuffle(self.trainset)
         random.shuffle(self.testset)
 
-        self.trainset = sorted(self.trainset, key=lambda x: x.story, reverse=True)
-        self.testset = sorted(self.testset, key=lambda x: x.story, reverse=True)
-        
+        if sort_key:
+            self.trainset = sorted(self.trainset, key=sort_key, reverse=True)
+            self.testset = sorted(self.testset, key=sort_key, reverse=True)
+
+    def portion(self, dataset, percent=None):
+        percent = percent if percent else self.portion_percent
+        return dataset[:int(len(dataset) * percent)]
+            
+class NLPDatasetList(DatasetList):
+    def __init__(self, name, datasets, portion_percent=1.0, sort_key=None):
+        super().__init__(name, datasets, portion_percent, sort_key)
         input_vocab = Counter()
         special_tokens = []
         for dataset in self.datasets:
