@@ -37,8 +37,8 @@ class NLPDatasetList:
         random.shuffle(self.trainset)
         random.shuffle(self.testset)
 
-        self.trainset = sorted(self.trainset, key=lambda x: x.story, reverse=True)
-        self.testset = sorted(self.testset, key=lambda x: x.story, reverse=True)
+        self.trainset = sorted(self.trainset, key=lambda x: len(x.story), reverse=True)
+        self.testset = sorted(self.testset, key=lambda x: len(x.story), reverse=True)
         
         input_vocab = Counter()
         special_tokens = []
