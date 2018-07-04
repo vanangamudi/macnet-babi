@@ -74,11 +74,9 @@ class Trainer(object):
             self.model.cuda()
         
     def __build_stats(self):
-        
         # necessary metrics
         self.train_loss = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,  'train_loss'))
-        self.test_loss  = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name, 'test_loss'))
-        self.accuracy   = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name, 'accuracy'))
+        self.metrics = [self.train_loss]
 
     def train(self):
         for epoch in range(self.epochs):
@@ -102,7 +100,10 @@ class Trainer(object):
 
 
             self.log.info('-- {} -- loss: {}'.format(epoch, self.train_loss.epoch_cache))                
-            self.train_loss.clear_cache()        
+            self.train_loss.clear_cache()
+            
+            for m in self.metrics:
+                m.write_to_file()
 
         return True
 
@@ -153,7 +154,6 @@ class Tester(object):
     def __build_stats(self):
         
         # necessary metrics
-        self.train_loss = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,   'train_loss'))
         self.test_loss  = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,   'test_loss'))
         self.accuracy   = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,  'accuracy'))
 
@@ -167,9 +167,12 @@ class Tester(object):
         self.recall = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'recall'))
         self.f1score   = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'f1score'))
 
-        self.metrics = [self.train_loss, self.test_loss, self.accuracy, self.precision, self.recall, self.f1score]
-
+        self.metrics = [self.test_loss, self.accuracy, self.precision, self.recall, self.f1score]
+        
     def save_best_model(self):
+        with open('{}/{}_best_model_accuracy.txt'.format(self.ROOT_DIR, self.name), 'w') as f:
+            f.write(str(self.best_model[0]))
+
         if self.save_model_weights:
             self.log.info('saving the last best model with accuracy {}...'.format(self.best_model[0]))
             torch.save(self.best_model[1], '{}/weights/{:0.4f}.{}'.format(self.ROOT_DIR, self.best_model[0], 'pth'))
