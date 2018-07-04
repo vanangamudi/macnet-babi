@@ -12,10 +12,11 @@ class CONFIG(Base):
     dropout = 0.1
     cuda = True
     tqdm = True
-    flush = False
-
+    flush = True
+    batch_size = 100
+    
     CHECKPOINT = 1
-    EPOCHS = 100
+    EPOCHS = 50
     EONS=100
     ACCURACY_THRESHOLD=0.9
     ACCURACY_IMPROVEMENT_THRESHOLD=0.05

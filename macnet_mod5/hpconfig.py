@@ -8,9 +8,12 @@ class Base(metaclass=ConfigMeta):
     pass
 
 class CONFIG(Base):
-    hidden_size = 100
-    embed_size = 100
-    batch_size = 200
-    reasoning_steps = 1
+    trainset_size = 0.1
+    hidden_size = 50
+    embed_size = 50
+    num_layers = 4
+    reasoning_steps = 4
+    
     LR = 0.001
     MOMENTUM=0.1
+    ACTIVATION = 'softmax'
