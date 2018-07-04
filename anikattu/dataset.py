@@ -36,6 +36,7 @@ class DatasetList:
         random.shuffle(self.trainset)
         random.shuffle(self.testset)
 
+
         if sort_key:
             self.trainset = sorted(self.trainset, key=sort_key, reverse=True)
             self.testset = sorted(self.testset, key=sort_key, reverse=True)
@@ -47,6 +48,7 @@ class DatasetList:
 class NLPDatasetList(DatasetList):
     def __init__(self, name, datasets, portion_percent=1.0, sort_key=None):
         super().__init__(name, datasets, portion_percent, sort_key)
+
         input_vocab = Counter()
         special_tokens = []
         for dataset in self.datasets:

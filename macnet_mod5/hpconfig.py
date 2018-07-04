@@ -8,9 +8,9 @@ class Base(metaclass=ConfigMeta):
     pass
 
 class CONFIG(Base):
-    hidden_size = 200
-    embed_size = 200
-    batch_size = 8
-    reasoning_steps = 8
+    hidden_size = 100
+    embed_size = 100
+    batch_size = 200
+    reasoning_steps = 1
     LR = 0.001
     MOMENTUM=0.1

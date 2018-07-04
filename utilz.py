@@ -82,8 +82,10 @@ def load_task_data(task=1, type_='train', max_sample_size=None):
                            a.lower())
                     )
 
+
                 if  max_sample_size and len(samples) > max_sample_size:
                     break
+
             else:
                 story += ' ' + line
 
@@ -111,8 +113,8 @@ def load_data(max_sample_size=None):
     for i in range(1, 21):
         filename, train_samples, train_input_vocab, train_output_vocab = load_task_data(task=i, type_='train', max_sample_size=max_sample_size)
         filename, test_samples, test_input_vocab, test_output_vocab = load_task_data(task=i, type_='test', max_sample_size=max_sample_size)
-
         task_name = re.search(r'qa\d+_(.*)_.*.txt', filename)
+
         if task_name:
             task_name = task_name.group(1)
 
