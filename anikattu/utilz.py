@@ -24,8 +24,8 @@ def mkdir_if_exist_not(name):
     if not os.path.isdir(name):
         return os.mkdir(name)
     
-def initialize_task(name):
-    root_dir = hash_file('hpconfig.py')[-6:]
+def initialize_task(hpconfig = 'hpconfig.py'):
+    root_dir = hash_file(hpconfig)[-6:]
     mkdir_if_exist_not(root_dir)
     mkdir_if_exist_not('{}/results'.format(root_dir))
     mkdir_if_exist_not('{}/results/metrics'.format(root_dir))
