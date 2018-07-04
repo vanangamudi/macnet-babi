@@ -1,3 +1,4 @@
+import os
 import logging
 import copy
 from config import CONFIG
@@ -142,9 +143,15 @@ class Tester(object):
 
         self.save_model_weights = save_model_weights
         self.best_model = (0.000001, self.model.cpu().state_dict())
-        if best_model:
-            self.best_model = best_model
-            
+        try:
+            f = '{}/{}_best_model_accuracy.txt'.format(self.ROOT_DIR, self.name)
+            if os.path.isfile(f):
+                self.best_model = (float(open(f).read().strip()), self.model.cpu().state_dict())
+                log.info('loaded last best accuracy: {}'.format(self.best_model[0]))
+        except:
+            log.exception('no last best model')
+
+                        
         self.best_model_criteria = self.accuracy
         self.save_best_model()
 
