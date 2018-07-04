@@ -3,7 +3,8 @@ from pprint import pprint, pformat
 
 import os
 import shutil
-    
+import pickle
+
 import logging
 from pprint import pprint, pformat
 logging.basicConfig(format="%(levelname)-8s:%(filename)s.%(funcName)20s >>   %(message)s")
@@ -179,18 +180,22 @@ def init_hidden(batch_size, cell):
 class Averager(list):
     def __init__(self, filename=None, *args, **kwargs):
         super(Averager, self).__init__(*args, **kwargs)
-        if filename:
-            open(filename, 'w').close()
-
         self.filename = filename
-        
+        if filename:
+            try:
+                f = '{}.pkl'.format(filename)
+                if os.path.isfile(f):
+                    log.debug('loading {}'.format(f))
+                    self.extend(pickle.load(open(f, 'rb')))
+            except:
+                open(filename, 'w').close()
+
     @property
     def avg(self):
         if len(self):
             return sum(self)/len(self)
         else:
             return 0
-
 
     def __str__(self):
         if len(self) > 0:
@@ -216,10 +221,13 @@ class Averager(list):
             plt.xlabel('epoch')
             plt.savefig('{}.{}'.format(self.filename, 'png'))
             plt.close()
-            
+
+            pickle.dump(list(self), open('{}.pkl'.format(self.filename), 'wb'))
             with open(self.filename, 'a') as f:
                 f.write(self.__str__() + '\n')
                 f.flush()
+
+                
 
 # Python program to find SHA256 hash string of a file
 #https://www.quickprogrammingtips.com/python/how-to-calculate-sha256-hash-of-a-file-in-python.html
