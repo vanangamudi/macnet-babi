@@ -219,17 +219,11 @@ class Tester(object):
             if self.config.CONFIG.cuda:
                 self.model.cuda()
 
-            if (
-                    self.predictor
-                    and (
-                        (
-                            self.best_model[0] > self.config.CONFIG.ACCURACY_THRESHOLD
-                            and  (self.best_model[0] - last_acc) * 5 > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD)
-                        or (
-                            self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD
-                    )
-            ):
-                self.predictor.run_prediction(self.accuracy.epoch_cache.avg)
+            if self.predictor and self.best_model[0] > 0.75:
+                if ((self.best_model[0] > self.config.CONFIG.ACCURACY_THRESHOLD  and  (5 * (self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD))
+                    or (self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD):
+                    
+                    self.predictor.run_prediction(self.accuracy.epoch_cache.avg)
                 
 
         self.test_loss.clear_cache()
