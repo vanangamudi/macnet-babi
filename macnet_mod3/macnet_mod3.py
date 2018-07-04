@@ -243,6 +243,22 @@ def batchop(datapoints, VOCAB, LABELS, *args, **kwargs):
     batch = indices, (story, question), (answer)
     return batch
 
+
+def predict_batchop(datapoints, VOCAB, LABELS, *args, **kwargs):
+    indices = [d.id for d in datapoints]
+    story = []
+    question = []
+
+    for d in datapoints:
+        story.append([VOCAB[w] for w in d.story] + [VOCAB['EOS']])
+        question.append([VOCAB[w] for w in d.q] + [VOCAB['EOS']])
+
+    story    = LongVar(pad_seq(story))
+    question = LongVar(pad_seq(question))
+
+    batch = indices, (story, question), ()
+    return batch
+
 class Base(nn.Module):
     def __init__(self, config, name):
         super(Base, self).__init__()
@@ -502,10 +518,17 @@ if __name__ == '__main__':
             
         def do_every_checkpoint(epoch):
             if epoch % 20 == 0:
+                from matplotlib import pyplot as plt
                 for t in tester.values():
                     t.do_every_checkpoint(epoch)
+                    plt.plot(list(t.accuracy), label=t.name)
+
+                plt.savefig('accuracy.png')
+                plt.close()
             else:
                 tester[SELF_NAME].do_every_checkpoint(epoch)
+
+                
                     
         trainer = Trainer(name=SELF_NAME,
                           config = config,
@@ -536,37 +559,21 @@ if __name__ == '__main__':
             dump.close()
 
     if 'predict' in sys.argv:
+        from utilz import predict
         print('=========== PREDICTION ==============')
         model.eval()
         count = 0
         while True:
             count += 1
-            sentence = []
-            input_string = word_tokenize(input('?').lower())
-            sentence.append([VOCAB[w] for w in input_string] + [VOCAB['EOS']])
-            dummy_label = LongVar([0])
-            sentence = LongVar(sentence)
-            input_ = [0], (sentence,), (0, )
-            output, attn = model(input_)
-
-            print(LABELS[output.max(1)[1]])
-
-            if 'show_plot' in sys.argv or 'save_plot' in sys.argv:
-                nwords = len(input_string)
-
-                from matplotlib import pyplot as plt
-                plt.figure(figsize=(20,10))
-                plt.bar(range(nwords+1), attn.squeeze().data.cpu().numpy())
-                plt.title('{}\n{}'.format(output.exp().tolist(), LABELS[output.max(1)[1]]))
-                plt.xticks(range(nwords), input_string, rotation='vertical')
-                if 'show_plot' in sys.argv:
-                    plt.show()
-                if 'save_plot' in sys.argv:
-                    plt.savefig('{}.png'.format(count))
-                plt.close()
-
+            input_string = input('?')
+            if not input_string:
+                continue
+            
+            predict(sys.argv, input_string, dataset)
+            
             print('Done')
                 
+                        
     if 'service' in sys.argv:
         model.eval()
         from flask import Flask,request,jsonify
