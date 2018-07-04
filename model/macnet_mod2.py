@@ -142,8 +142,8 @@ class MacNet(Base):
         
         self.embed = nn.Embedding(self.input_vocab_size, self.embed_size)
         
-        self.encode_story  = nn.GRU(self.embed.embedding_dim, self.hidden_size, bidirectional=True)
-        self.encode_question = nn.GRU(self.embed.embedding_dim, self.hidden_size, bidirectional=True)
+        self.encode_story  = nn.GRU(self.embed.embedding_dim, self.hidden_size, bidirectional=True, num_layers=config.HPCONFIG.num_layers)
+        self.encode_question = nn.GRU(self.embed.embedding_dim, self.hidden_size, bidirectional=True, num_layers=config.HPCONFIG.num_layers)
         self.dropout = nn.Dropout(0.1)
 
         self.produce_qi = nn.Linear(4*self.hidden_size, 2 * self.hidden_size)
