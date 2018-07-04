@@ -14,6 +14,7 @@ logging.basicConfig(format="%(levelname)-8s:%(filename)s.%(name)s.%(funcName)s >
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
+from functools import partial
 
 import config
 import numpy as np
@@ -62,11 +63,16 @@ class ControlUnit(Base):
         self.query_control = nn.Linear(6 * self.hidden_size, 2 * self.hidden_size)
         self.attend = nn.Linear(2 * self.hidden_size, 1)
 
+        if config.HPCONFIG.ACTIVATION == 'softmax':
+            self.attn_activation = partial(F.softmax, dim=0)
+        elif config.HPCONFIG.ACTIVATION == 'sigmoid':
+            self.attn_activation = F.sigmoid
+
 
     def forward(self, prev_control, prev_query, query_repr, memory):
         cqi = self.__( self.query_control(torch.cat([prev_control, prev_query, memory], dim=-1)), 'cqi')
         cais = self.__( self.attend(cqi * query_repr), 'cais') 
-        cvis = self.__( F.softmax(cais, dim=0), 'cvis')
+        cvis = self.__( self.attn_activation(cais), 'cvis')
         ci   = self.__( (cvis * query_repr).sum(dim=0), 'ci')
         return ci, cvis
     
@@ -82,6 +88,11 @@ class ReadUnit(Base):
         self.input_control = nn.Linear(2 * self.hidden_size, 1)
         self.attend = nn.Linear(self.hidden_size, 1)
 
+        if config.HPCONFIG.ACTIVATION == 'softmax':
+            self.attn_activation = partial(F.softmax, dim=0)
+        elif config.HPCONFIG.ACTIVATION == 'sigmoid':
+            self.attn_activation = F.sigmoid
+
     def forward(self, memory, control, story):
         seq_len, batch_size, hidden_size = story.size()
         projected_story = self.__( self.project_story(story).view(seq_len, batch_size, hidden_size), 'projected_story')
@@ -92,7 +103,7 @@ class ReadUnit(Base):
         Iihwp_ = self.__( Iihwp, 'Iihwp_' )
         control = self.__( control.unsqueeze(0).expand_as(Iihwp_), 'control')
         raihw = self.__(self.input_control(control * Iihwp_), 'raihw')
-        rvihw = self.__(F.softmax(raihw, dim=0), 'rvihw')
+        rvihw = self.__(self.attn_activation(raihw), 'rvihw')
         ri    = self.__((rvihw * story).sum(dim=0), 'ri')
         return ri, rvihw
 
