@@ -200,7 +200,8 @@ class Averager(list):
 
     def __str__(self):
         if len(self) > 0:
-            return 'min/max/avg/latest: {:0.5f}/{:0.5f}/{:0.5f}/{:0.5f}'.format(min(self), max(self), self.avg, self[-1])
+            #return 'min/max/avg/latest: {:0.5f}/{:0.5f}/{:0.5f}/{:0.5f}'.format(min(self), max(self), self.avg, self[-1])
+            return '{:0.4f}/{:0.4f}/{:0.4f}/{:0.4f}'.format(min(self), max(self), self.avg, self[-1])
         
         return '<empty>'
 
