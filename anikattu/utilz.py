@@ -179,9 +179,10 @@ def init_hidden(batch_size, cell):
         return hidden
     
 class Averager(list):
-    def __init__(self, filename=None, *args, **kwargs):
+    def __init__(self, filename=None, ylim=None, *args, **kwargs):
         super(Averager, self).__init__(*args, **kwargs)
         self.filename = filename
+        self.ylim = ylim
         if filename:
             try:
                 f = '{}.pkl'.format(filename)
@@ -221,6 +222,9 @@ class Averager(list):
             plt.plot(self)
             plt.title(os.path.basename(self.filename), fontsize=20)
             plt.xlabel('epoch')
+            if self.ylim:
+                plt.ylim(*self.ylim)
+                
             plt.savefig('{}.{}'.format(self.filename, 'png'))
             plt.close()
 
