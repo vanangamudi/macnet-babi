@@ -90,8 +90,13 @@ if __name__ == '__main__':
         log.info('loaded the old image for the model from :{}'.format(model_snapshot))
     except:
         log.exception('failed to load the model  from :{}'.format(model_snapshot))
-        
-    if config.CONFIG.cuda:  model = model.cuda()        
+
+    if config.CONFIG.cuda:
+        model = model.cuda()        
+        if config.CONFIG.multi_gpu and torch.cuda.device_count() > 1:
+            print("Let's use", torch.cuda.device_count(), "GPUs!")
+            model = nn.DataParallel(model)
+
     print('**** the model', model)
     
     if args.task == 'train':

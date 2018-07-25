@@ -15,10 +15,11 @@ class CONFIG(Base):
     split_ratio = 0.90
     dropout = 0.1
     cuda = True
+    multi_gpu = True
     tqdm = True
     flush = False
     batch_size = 200
-    
+
     CHECKPOINT = 1
     EPOCHS = 50
     EONS=4
