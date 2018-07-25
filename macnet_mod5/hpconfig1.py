@@ -9,10 +9,10 @@ class Base(metaclass=ConfigMeta):
 
 class CONFIG(Base):
     trainset_size = 1.0
-    hidden_size = 20
-    embed_size = 20
+    hidden_size = 10
+    embed_size = 10
     num_layers = 1
-    reasoning_steps = 2
+    reasoning_steps = 1
     
     LR = 0.001
     MOMENTUM=0.1

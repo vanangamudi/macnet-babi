@@ -17,11 +17,11 @@ class CONFIG(Base):
     cuda = True
     tqdm = True
     flush = False
-    batch_size = 100
+    batch_size = 80
     
     CHECKPOINT = 1
     EPOCHS = 50
-    EONS=1
+    EONS=4
     ACCURACY_THRESHOLD=0.9
     ACCURACY_IMPROVEMENT_THRESHOLD=0.05
     
