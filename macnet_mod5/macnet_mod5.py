@@ -63,13 +63,17 @@ if __name__ == '__main__':
 
     ROOT_DIR = initialize_task(args.hpconfig)
 
+    sys.path.append('.')
+    print(sys.path)
+    HPCONFIG = importlib.__import__(args.hpconfig.replace('.py', ''))
+    config.HPCONFIG = HPCONFIG.CONFIG
     print('====================================')
     print(ROOT_DIR)
     print('====================================')
         
     if config.CONFIG.flush:
         log.info('flushing...')
-        dataset = load_data(100)
+        dataset = load_data()
         pickle.dump(dataset, open('{}__cache.pkl'.format(SELF_NAME), 'wb'))
     else:
         dataset = pickle.load(open('{}__cache.pkl'.format(SELF_NAME), 'rb'))
