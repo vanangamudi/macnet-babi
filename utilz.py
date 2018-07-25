@@ -188,11 +188,15 @@ def predict_batchop(datapoints, VOCAB, LABELS, *args, **kwargs):
     batch = indices, (story, question), ()
     return batch
 
+def portion(dataset, percent):
+    return dataset[ : int(len(dataset) * percent) ]
+
 def train(config, argv, name, ROOT_DIR,  model, dataset):
     _batchop = partial(batchop, VOCAB=dataset.input_vocab, LABELS=dataset.output_vocab)
-    train_feed     = DataFeed(name, dataset.trainset, batchop=_batchop, batch_size=config.CONFIG.batch_size)
     predictor_feed = DataFeed(name, dataset.testset, batchop=_batchop, batch_size=1)
-
+    train_feed     = DataFeed(name, portion(dataset.trainset, config.HPCONFIG.trainset_size),
+                              batchop=_batchop, batch_size=config.CONFIG.batch_size)
+    
     predictor = Predictor(name,
                           model=model,
                           directory=ROOT_DIR,
