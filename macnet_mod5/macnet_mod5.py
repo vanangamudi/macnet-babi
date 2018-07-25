@@ -7,14 +7,14 @@ import random
 from pprint import pprint, pformat
 
 sys.path.append('..')
-
+import config
 from anikattu.logger import CMDFilter
 import logging
-logging.basicConfig(format="%(levelname)-8s:%(filename)s.%(name)s.%(funcName)s >>   %(message)s")
+logging.basicConfig(format=config.FORMAT_STRING)
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+import sys
 
-import config
 
 from torch import nn, optim
 from torch.nn import functional as F

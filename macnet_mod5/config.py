@@ -1,5 +1,9 @@
 import logging
 from hpconfig import CONFIG as HPCONFIG
+
+#FORMAT_STRING = "%(levelname)-8s:%(name)s.%(funcName)s>> %(message)s"
+FORMAT_STRING = "%(levelname)-8s:%(name)-8s.%(funcName)-8ss>> %(message)s"
+
 class ConfigMeta(type):
     def __getattr__(cls, attr):
         return cls._default
