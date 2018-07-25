@@ -83,7 +83,7 @@ class Trainer(object):
         for epoch in range(self.epochs):
             self.log.critical('memory consumed : {}'.format(memory_consumed()))            
 
-            if epoch % self.checkpoint == 0:
+            if epoch % max(1, (self.checkpoint - 1)) == 0:
                 if self.do_every_checkpoint(epoch) == FLAGS.STOP_TRAINING:
                     self.log.info('loss trend suggests to stop training')
                     return
@@ -208,17 +208,17 @@ class Tester(object):
                 self.recall.cache(recall)
                 self.f1score.cache(f1score)
 
-        self.log.info('-- {} -- loss: {}'.format(epoch, self.test_loss.epoch_cache))
-        self.log.info('-- {} -- accuracy: {}'.format(epoch, self.accuracy.epoch_cache))
+        self.log.info('={}=loss:{}'.format(epoch, self.test_loss.epoch_cache))
+        self.log.info('-{}-accuracy:{}'.format(epoch, self.accuracy.epoch_cache))
         if self.f1score_function:
-            self.log.info('-- {} -- tp: {}'.format(epoch, sum(self.tp.epoch_cache)))
-            self.log.info('-- {} -- fn: {}'.format(epoch, sum(self.fn.epoch_cache)))
-            self.log.info('-- {} -- fp: {}'.format(epoch, sum(self.fp.epoch_cache)))
-            self.log.info('-- {} -- tn: {}'.format(epoch, sum(self.tn.epoch_cache)))
+            self.log.info('-{}-tp:{}'.format(epoch, sum(self.tp.epoch_cache)))
+            self.log.info('-{}-fn:{}'.format(epoch, sum(self.fn.epoch_cache)))
+            self.log.info('-{}-fp:{}'.format(epoch, sum(self.fp.epoch_cache)))
+            self.log.info('-{}-tn:{}'.format(epoch, sum(self.tn.epoch_cache)))
                         
-            self.log.info('-- {} -- precision: {}'.format(epoch, self.precision.epoch_cache))
-            self.log.info('-- {} -- recall: {}'.format(epoch, self.recall.epoch_cache))
-            self.log.info('-- {} -- f1score: {}'.format(epoch, self.f1score.epoch_cache))
+            self.log.info('-{}-precision:{}'.format(epoch, self.precision.epoch_cache))
+            self.log.info('-{}-recall:{}'.format(epoch, self.recall.epoch_cache))
+            self.log.info('-{}-f1score:{}'.format(epoch, self.f1score.epoch_cache))
 
         if self.best_model[0] < self.accuracy.epoch_cache.avg:
             self.log.info('beat best model...')
@@ -230,6 +230,7 @@ class Tester(object):
                 self.model.cuda()
 
             if self.predictor and self.best_model[0] > 0.75:
+                log.info('accuracy is greater than 0.75...')
                 if ((self.best_model[0] > self.config.CONFIG.ACCURACY_THRESHOLD  and  (5 * (self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD))
                     or (self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD):
                     
