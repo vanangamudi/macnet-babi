@@ -26,12 +26,16 @@ from anikattu.utilz import initialize_task
 from model.macnet_mod2 import MacNet
 from utilz import load_data, train, predict
 
+import importlib
+
 
 SELF_NAME = os.path.basename(__file__).replace('.py', '')
 
 import sys
 import pickle
 import argparse
+from matplotlib import pyplot as plt
+plt.style.use('ggplot')
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='MACNet variant 2')
