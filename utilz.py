@@ -206,7 +206,6 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
                                                 , LABELS=dataset.output_vocab
                                                 , dataset=dataset.testset_dict))
 
-
     loss_ = partial(loss, loss_function=nn.NLLLoss())
     test_feed, tester = {}, {}
     for subset in dataset.datasets:
@@ -234,7 +233,7 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
 
 
     def do_every_checkpoint(epoch):
-        if epoch % 50 == 0:
+        if epoch % (50 -1) == 0:
             from matplotlib import pyplot as plt
             fig = plt.figure(figsize=(10, 5))
             for t in tester.values():
@@ -312,7 +311,7 @@ def plot_attn1(argv, question_tokens, story_tokens, output, dataset):
     if 'show_plot' in argv or 'save_plot' in argv:
         from matplotlib import pyplot as plt
         plt.style.use('ggplot')
-        fig, axes = plt.subplots(sattn.size(0), 2, figsize=( max(4, sattn.size(0)), max(2, sattn.size(1))),
+        fig, axes = plt.subplots(sattn.size(0), 2, figsize=( max(2, sattn.size(1)),  max(16, sattn.size(0))),
                                  gridspec_kw = {'width_ratios':[len(question_tokens), len(story_tokens)]})
 
         if axes.ndim == 1: axes = axes.reshape(1, -1)
