@@ -19,7 +19,8 @@ class CONFIG(Base):
     tqdm = True
     flush = False
     batch_size = 200
-
+    plot_metrics = True
+    
     CHECKPOINT = 1
     EPOCHS = 50
     EONS=4

@@ -179,8 +179,9 @@ def init_hidden(batch_size, cell):
         return hidden
     
 class Averager(list):
-    def __init__(self, filename=None, ylim=None, *args, **kwargs):
+    def __init__(self, config, filename=None, ylim=None, *args, **kwargs):
         super(Averager, self).__init__(*args, **kwargs)
+        self.config = config
         self.filename = filename
         self.ylim = ylim
         if filename:
@@ -218,15 +219,16 @@ class Averager(list):
     def write_to_file(self):
         
         if self.filename:
-            import matplotlib.pyplot as plt
-            plt.plot(self)
-            plt.title(os.path.basename(self.filename), fontsize=20)
-            plt.xlabel('epoch')
-            if self.ylim:
-                plt.ylim(*self.ylim)
-                
-            plt.savefig('{}.{}'.format(self.filename, 'png'))
-            plt.close()
+            if self.config.CONFIG.plot_metrics:
+                import matplotlib.pyplot as plt
+                plt.plot(self)
+                plt.title(os.path.basename(self.filename), fontsize=20)
+                plt.xlabel('epoch')
+                if self.ylim:
+                    plt.ylim(*self.ylim)
+
+                plt.savefig('{}.{}'.format(self.filename, 'png'))
+                plt.close()
 
             pickle.dump(list(self), open('{}.pkl'.format(self.filename), 'wb'))
             with open(self.filename, 'a') as f:

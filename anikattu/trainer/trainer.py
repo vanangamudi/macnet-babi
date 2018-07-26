@@ -27,9 +27,10 @@ class FLAGS:
     
 
 class EpochAverager(Averager):
-    def __init__(self, filename=None, *args, **kwargs):
-        super(EpochAverager, self).__init__(filename, *args, **kwargs)
-        self.epoch_cache = Averager(filename, *args, *kwargs)
+    def __init__(self, config, filename=None, *args, **kwargs):
+        super(EpochAverager, self).__init__(config, filename, *args, **kwargs)
+        self.config = config
+        self.epoch_cache = Averager(config, filename, *args, *kwargs)
 
     def cache(self, a):
         self.epoch_cache.append(a)
@@ -76,7 +77,7 @@ class Trainer(object):
         
     def __build_stats(self):
         # necessary metrics
-        self.train_loss = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,  'train_loss'))
+        self.train_loss = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,  'train_loss'))
         self.metrics = [self.train_loss]
 
     def train(self):
@@ -161,18 +162,18 @@ class Tester(object):
     def __build_stats(self):
         
         # necessary metrics
-        self.test_loss  = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,   'test_loss'))
-        self.accuracy   = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,  'accuracy'))
+        self.test_loss  = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,   'test_loss'))
+        self.accuracy   = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR, self.name,  'accuracy'))
 
         # optional metrics
-        self.tp = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,   'tp'))
-        self.fp = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'fp'))
-        self.fn = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'fn'))
-        self.tn = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'tn'))
+        self.tp = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,   'tp'))
+        self.fp = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'fp'))
+        self.fn = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'fn'))
+        self.tn = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'tn'))
       
-        self.precision = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'precision'))
-        self.recall = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'recall'))
-        self.f1score   = EpochAverager(filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'f1score'))
+        self.precision = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'precision'))
+        self.recall = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'recall'))
+        self.f1score   = EpochAverager(self.config, filename = '{}/results/metrics/{}.{}'.format(self.ROOT_DIR,  self.name,  'f1score'))
 
         self.metrics = [self.test_loss, self.accuracy, self.precision, self.recall, self.f1score]
         
