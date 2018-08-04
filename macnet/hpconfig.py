@@ -7,9 +7,13 @@ class ConfigMeta(type):
 class Base(metaclass=ConfigMeta):
     pass
 
-class Config(Base):
-    hidden_size = 300
-    embed_size = 200
-    batch_size = 2
-
+class CONFIG(Base):
+    trainset_size = 1.0
+    hidden_size = 20
+    embed_size = 20
+    num_layers = 1
     reasoning_steps = 2
+    
+    LR = 0.001
+    MOMENTUM=0.1
+    ACTIVATION = 'sigmoid'

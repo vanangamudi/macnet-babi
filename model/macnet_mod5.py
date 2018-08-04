@@ -35,8 +35,8 @@ class Base(nn.Module):
         self.log.info('constructing logger: {}'.format(size_log_name))
         self.size_log = logging.getLogger(size_log_name)
         self.size_log.info('size_log')
-        self.log.setLevel(logging.INFO)
-        self.size_log.setLevel(logging.INFO)
+        self.log.setLevel(config.CONFIG.LOG.MODEL.level)
+        self.size_log.setLevel(config.CONFIG.LOG.MODEL.level)
         self.print_instance = 0
         
     def __(self, tensor, name='', print_instance=False):
