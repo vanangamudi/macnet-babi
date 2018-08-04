@@ -1,6 +1,13 @@
-# Run
-1. Clone the repo
-2. create a dir under the cloned repo named _dataset_
-3. place the [train](https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json) and [dev](https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json) json files dataset [squad](https://rajpurkar.github.io/SQuAD-explorer/)
-4. In dcn.py change set  `flush = True`
-5. run as `>>> python dcn.py "" train`
+macnet_mod2 :=
+control unit also takes in prev memory
+
+macnet_mod3 :=
+produce_qi - not a list of linear transforms anymore - it combines prev_qi and memory to form new query-qi
+
+
+macnet_mod4 :=
+use minfo instead of mi from WriteUnit
+
+
+macnet_mod5 :=
+use same RNN for encoding both story and question
