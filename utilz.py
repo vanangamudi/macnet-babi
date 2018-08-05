@@ -108,9 +108,9 @@ def load_task_data(task=1, type_='train', max_sample_size=None):
 
     return filename, samples, input_vocabulary, output_vocabulary
 
-def load_data(max_sample_size=None):
+def load_data(config, max_sample_size=None):
     dataset = {}
-    for i in range(1, 21):
+    for i in config.HPCONFIG.tasks:
         filename, train_samples, train_input_vocab, train_output_vocab = load_task_data(task=i, type_='train', max_sample_size=max_sample_size)
         filename, test_samples, test_input_vocab, test_output_vocab = load_task_data(task=i, type_='test', max_sample_size=max_sample_size)
         task_name = re.search(r'qa\d+_(.*)_.*.txt', filename)
@@ -233,7 +233,7 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
 
 
     def do_every_checkpoint(epoch):
-        if epoch % (50 -1) == 0:
+        if epoch % (20 -1) == 0:
             from matplotlib import pyplot as plt
             fig = plt.figure(figsize=(10, 5))
             for t in tester.values():
@@ -263,9 +263,6 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
 
     for e in range(config.CONFIG.EONS):
 
-        if not trainer.train():
-            raise Exception
-
         dump = open('{}/results/eon_{}.csv'.format(ROOT_DIR, e), 'w')
         log.info('on {}th eon'.format(e))
         results = ListTable()
@@ -274,6 +271,9 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
             results.extend(_results)
         dump.write(repr(results))
         dump.close()
+        
+        if not trainer.train():
+            raise Exception
 
     
 def predict(config, argv, model, input_string, dataset):
