@@ -69,9 +69,14 @@ class ControlUnit(Base):
             self.attn_activation = F.sigmoid
 
 
-    def forward(self, prev_control, prev_query, query_repr, memory):
+    def forward(self, prev_control, prev_query, query_repr, memory, mask):
         cqi = self.__( self.query_control(torch.cat([prev_control, prev_query, memory], dim=-1)), 'cqi')
-        cais = self.__( self.attend(cqi * query_repr), 'cais') 
+        
+        story_mask, question_mask = mask
+        query_repr_ = query_repr * question_mask
+        
+        cais = self.__( self.attend(cqi * query_repr_), 'cais')
+
         cvis = self.__( self.attn_activation(cais), 'cvis')
         ci   = self.__( (cvis * query_repr).sum(dim=0), 'ci')
         return ci, cvis
@@ -93,7 +98,7 @@ class ReadUnit(Base):
         elif config.HPCONFIG.ACTIVATION == 'sigmoid':
             self.attn_activation = F.sigmoid
 
-    def forward(self, memory, control, story):
+    def forward(self, memory, control, story, mask):
         seq_len, batch_size, hidden_size = story.size()
         projected_story = self.__( self.project_story(story).view(seq_len, batch_size, hidden_size), 'projected_story')
         projected_memory = self.__( self.project_memory(memory), 'projected_memory')
@@ -101,8 +106,12 @@ class ReadUnit(Base):
         Iihwp = self.__(self.blend(torch.cat([Iihw, story], dim=-1)), 'Iihwp')
 
         Iihwp_ = self.__( Iihwp, 'Iihwp_' )
+        
+        story_mask, question_mask = mask
+        Iihwp_ = Iihwp_ * story_mask
         control = self.__( control.unsqueeze(0).expand_as(Iihwp_), 'control')
         raihw = self.__(self.input_control(control * Iihwp_), 'raihw')
+
         rvihw = self.__(self.attn_activation(raihw), 'rvihw')
         ri    = self.__((rvihw * story).sum(dim=0), 'ri')
         return ri, rvihw
@@ -179,24 +188,35 @@ class MacNet(Base):
         story = self.__( story, 'story')
         question = self.__(question, 'question')
 
+        story_mask = story > 0
+        question_mask = question > 0
+
         batch_size, story_size  = story.size()
         batch_size, question_size = question.size()
         
         story  = self.__( self.embed(story),  'story_emb')
         question = self.__( self.embed(question), 'question_emb')
 
+        
         story  = story.transpose(1,0)
+        story_mask  = story_mask.transpose(1,0)
         story, _  = self.__(  self.encode_story(
             story,
             init_hidden(batch_size, self.encode_story)), 'C'
         )
         
         question  = question.transpose(1,0)
+        question_mask  = question_mask.transpose(1,0)
         question, _ = self.__(  self.encode_story(
             question,
             init_hidden(batch_size, self.encode_question)), 'Q'
         )
 
+        story_mask = story_mask.unsqueeze(-1).expand_as(story).float()
+        question_mask = question_mask.unsqueeze(-1).expand_as(question).float()
+        
+        mask = (story_mask, question_mask)
+        
         c, m, r = [], [], []
         c.append(Var(np.zeros((batch_size, 2 * self.hidden_size))))
         m.append(Var(np.zeros((batch_size, 2 * self.hidden_size))))
@@ -206,10 +226,10 @@ class MacNet(Base):
         
         for i in range(config.HPCONFIG.reasoning_steps):
 
-            ci, qattn = self.control(c[-1], qi, question, m[-1])
+            ci, qattn = self.control(c[-1], qi, question, m[-1], mask)
             ci = self.dropout(ci)
 
-            ri, sattn = self.read(m[-1], ci, story)
+            ri, sattn = self.read(m[-1], ci, story, mask)
             ri = self.dropout(ri)
 
             mi, mattn = self.write( m[-1], ri, ci, c, m )
