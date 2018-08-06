@@ -232,7 +232,7 @@ class Tester(object):
 
             if self.predictor and self.best_model[0] > 0.75:
                 log.info('accuracy is greater than 0.75...')
-                if ((self.best_model[0] > self.config.CONFIG.ACCURACY_THRESHOLD  and  (5 * (self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD))
+                if ((self.best_model[0] >= self.config.CONFIG.ACCURACY_THRESHOLD  and  (5 * (self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD))
                     or (self.best_model[0] - last_acc) > self.config.CONFIG.ACCURACY_IMPROVEMENT_THRESHOLD):
                     
                     self.predictor.run_prediction(self.accuracy.epoch_cache.avg)
