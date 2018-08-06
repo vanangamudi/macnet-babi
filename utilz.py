@@ -233,18 +233,15 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
 
 
     def do_every_checkpoint(epoch):
-        if epoch % (20 -1) == 0:
-            from matplotlib import pyplot as plt
-            fig = plt.figure(figsize=(10, 5))
-            for t in tester.values():
-                t.do_every_checkpoint(epoch)
-                plt.plot(list(t.accuracy), label=t.name)
-
+        from matplotlib import pyplot as plt
+        fig = plt.figure(figsize=(10, 5))
+        for t in tester.values():
+            t.do_every_checkpoint(epoch)
+            plt.plot(list(t.accuracy), label=t.name)
+            
             plt.savefig('accuracy.png')
             plt.close()
-        else:
-            tester[name].do_every_checkpoint(epoch)
-
+        
 
 
     trainer = Trainer(name=name,
@@ -263,6 +260,9 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
 
     for e in range(config.CONFIG.EONS):
 
+        if not trainer.train():
+            raise Exception
+
         dump = open('{}/results/eon_{}.csv'.format(ROOT_DIR, e), 'w')
         log.info('on {}th eon'.format(e))
         results = ListTable()
@@ -272,9 +272,6 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
         dump.write(repr(results))
         dump.close()
         
-        if not trainer.train():
-            raise Exception
-
     
 def predict(config, argv, model, input_string, dataset):
                 
