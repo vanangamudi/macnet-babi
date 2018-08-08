@@ -24,7 +24,7 @@ from collections import namedtuple, defaultdict, Counter
 
 from anikattu.tokenizer import word_tokenize
 from anikattu.tokenstring import TokenString
-from anikattu.trainer import Trainer, Tester, Predictor
+from anikattu.trainer import Trainer, MultiTrainer, Tester, Predictor
 from anikattu.datafeed import DataFeed, MultiplexedDataFeed
 from anikattu.dataset import NLPDataset as Dataset, NLPDatasetList as DatasetList
 from anikattu.utilz import tqdm, ListTable
@@ -62,7 +62,7 @@ def load_task_data(task=1, type_='train', max_sample_size=None):
         log.info('processing file: {}'.format(filename))
         dataset = open(filename).readlines()
         prev_linenum = 1000000
-        for line in tqdm(dataset):
+        for line in tqdm(dataset, desc='processing {}'.format(filename)):
             questions, answers = [], []
             linenum, line = line.split(' ', 1)
 
@@ -94,6 +94,8 @@ def load_task_data(task=1, type_='train', max_sample_size=None):
     except:
         skipped += 1
         log.exception('{}'.format(task, linenum))
+
+        
         
     print('skipped {} samples'.format(skipped))
     
@@ -266,7 +268,108 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
         dump = open('{}/results/eon_{}.csv'.format(ROOT_DIR, e), 'w')
         log.info('on {}th eon'.format(e))
         results = ListTable()
-        for ri in tqdm(range(predictor_feed.num_batch)):
+        for ri in tqdm(range(predictor_feed.num_batch), desc='\nrunning prediction on eon: {}'.format(e)):
+            output, _results = predictor.predict(ri)
+            results.extend(_results)
+        dump.write(repr(results))
+        dump.close()
+
+
+def adaptive_train(config, argv, name, ROOT_DIR,  model, dataset):
+    _batchop = partial(batchop, VOCAB=dataset.input_vocab, LABELS=dataset.output_vocab)
+
+    predictor_feed = DataFeed(name, dataset.testset, batchop=_batchop, batch_size=1)
+    predictor = Predictor(name,
+                          model=model,
+                          directory=ROOT_DIR,
+                          feed=predictor_feed,
+                          repr_function=partial(repr_function
+                                                , VOCAB=dataset.input_vocab
+                                                , LABELS=dataset.output_vocab
+                                                , dataset=dataset.testset_dict))
+
+    loss_ = partial(loss, loss_function=nn.NLLLoss())
+    test_feed, tester = {}, {}
+    train_feed, trainer = {}, {}
+    for subset in dataset.datasets:
+        train_feed[subset.name]     = DataFeed(subset.name,
+                                               portion(subset.trainset, config.HPCONFIG.trainset_size),
+                                               batchop=_batchop, batch_size=config.CONFIG.batch_size)
+        
+        test_feed[subset.name]      = DataFeed(subset.name, subset.testset, batchop=_batchop, batch_size=config.CONFIG.batch_size)
+
+        tester[subset.name] = Tester(name     = subset.name,
+                                     config   = config,
+                                     model    = model,
+                                     directory = ROOT_DIR,
+                                     loss_function = loss_,
+                                     accuracy_function = accuracy,
+                                     feed = test_feed[subset.name],
+                                     save_model_weights=False)
+        
+        trainer[subset.name] = Trainer(name=subset.name,
+                                       config = config,
+                                       model=model,
+                                       directory=ROOT_DIR,
+                                       optimizer  = optim.Adam(model.parameters()),
+                                       loss_function = loss_,
+                                       checkpoint = config.CONFIG.CHECKPOINT,
+                                       do_every_checkpoint = tester[subset.name].do_every_checkpoint,
+                                       epochs = config.CONFIG.EPOCHS,
+                                       feed = train_feed[subset.name],
+        )
+
+
+
+    test_feed[name]      = DataFeed(name, dataset.testset, batchop=_batchop, batch_size=config.CONFIG.batch_size)
+
+    tester[name] = Tester(name  = name,
+                                  config   = config,
+                                  model    = model,
+                                  directory = ROOT_DIR,
+                                  loss_function = loss_,
+                                  accuracy_function = accuracy,
+                                  feed = test_feed[name],
+                                  predictor=predictor)
+
+
+    def do_every_checkpoint(epoch):
+        from matplotlib import pyplot as plt
+        fig = plt.figure(figsize=(10, 5))
+        for t in tester.values():
+            t.do_every_checkpoint(epoch)
+            plt.plot(list(t.accuracy), label=t.name)
+            
+            plt.savefig('accuracy.png')
+            plt.close()
+        
+    train_feed[name]     = DataFeed(subset.name,
+                                           portion(dataset.trainset, config.HPCONFIG.trainset_size),
+                                           batchop=_batchop, batch_size=config.CONFIG.batch_size)
+    trainer[name] = Trainer(name=name,
+                             config = config,
+                             model=model,
+                             directory=ROOT_DIR,
+                             optimizer  = optim.Adam(model.parameters()),
+                             loss_function = loss_,
+                             checkpoint = config.CONFIG.CHECKPOINT,
+                             do_every_checkpoint = do_every_checkpoint,
+                             epochs = config.CONFIG.EPOCHS,
+                             feed = train_feed[name],
+    )
+
+    master_trainer = MultiTrainer(name, config, trainer, tester, primary_trainer='main')
+
+
+    for e in range(config.CONFIG.EONS):
+
+        if not master_trainer.train():
+            raise Exception
+
+        dump = open('{}/results/eon_{}.csv'.format(ROOT_DIR, e), 'w')
+        log.info('on {}th eon'.format(e))
+        results = ListTable()
+        for ri in tqdm(range(predictor_feed.num_batch), desc='\nrunning prediction on eon: {}'.format(e)):
             output, _results = predictor.predict(ri)
             results.extend(_results)
         dump.write(repr(results))
