@@ -11,3 +11,9 @@ use minfo instead of mi from WriteUnit
 
 macnet_mod5 :=
 use same RNN for encoding both story and question
+
+
+
+TODO:
+
+do not use story when producing - Iihwp. restricts the module to use just the interation from previous memory and knowledge base
