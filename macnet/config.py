@@ -18,12 +18,13 @@ class CONFIG(Base):
     multi_gpu = True
     tqdm = True
     flush = False
-    batch_size = 200
+    batch_size = 50
     plot_metrics = True
     
     CHECKPOINT = 1
-    EPOCHS = 50
-    EONS=4
+    EPOCHS = 5
+    EONS=1
+    TIMES=10
     ACCURACY_THRESHOLD=0.9
     ACCURACY_IMPROVEMENT_THRESHOLD=0.05
     
@@ -33,7 +34,7 @@ class CONFIG(Base):
         class PREPROCESS(Base):
             level=logging.DEBUG
         class MODEL(Base):
-            level=logging.DEBUG
+            level=logging.INFO
         class TRAINER(Base):
             level=logging.INFO
         class DATAFEED(Base):

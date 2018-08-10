@@ -101,10 +101,11 @@ if __name__ == '__main__':
     print('**** the model', model)
     
     if args.task == 'train':
-        if args.mux:
+        for i in range(config.CONFIG.TIMES):
+            log.info('=======================TIMES: {}'.format(i))
             multiplexed_train(config, args, SELF_NAME, ROOT_DIR, model, dataset)
-        else:
             train(config, args, SELF_NAME, ROOT_DIR, model, dataset)
+
         
     if args.task == 'predict':
         print('=========== PREDICTION ==============')
