@@ -44,6 +44,7 @@ class DatasetList:
     def portion(self, dataset, percent=None):
         percent = percent if percent else self.portion_percent
         return dataset[:int(len(dataset) * percent)]
+
             
 class NLPDatasetList(DatasetList):
     def __init__(self, name, datasets, portion_percent=1.0, sort_key=None):
@@ -79,8 +80,25 @@ class NLPDatasetList(DatasetList):
         self.datasets.__iter__()
 
 
+
+class Dataset:
+    def __init__(self, name, dataset):
+
+        self.name = name
+        log.info('building dataset: {}'.format(name))
+        if not isinstance(dataset, tuple):
+            dataset =  split_dataset(list(dataset))
+        self.trainset, self.testset =  dataset
+
+        self.trainset_dict = {i.id:i for i in self.trainset}
+        self.testset_dict = {i.id:i for i in self.testset}
         
-class NLPDataset:
+        log.info('build dataset: {}'.format(name))
+        log.info(' trainset size: {}'.format(len(self.trainset)))
+        log.info(' testset size: {}'.format(len(self.testset)))
+        
+        
+class NLPDataset(Dataset):
     def __init__(self, name, dataset, input_vocab, output_vocab):
 
         self.name = name
