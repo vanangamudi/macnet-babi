@@ -24,7 +24,7 @@ import torch
 from anikattu.utilz import initialize_task
 
 from model.macnet_mod5 import MacNet
-from utilz import load_data, train, predict
+from utilz import load_data, train, multiplexed_train, predict
 
 import importlib
 
@@ -49,6 +49,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help='commands')
     train_parser = subparsers.add_parser('train', help='starts training')
     train_parser.add_argument('--train', default='train', dest='task')
+    train_parser.add_argument('--mux', action='store_true', default=False, dest='mux')
     
     predict_parser = subparsers.add_parser('predict',
                                 help='''starts a cli interface for running predictions 
@@ -100,7 +101,10 @@ if __name__ == '__main__':
     print('**** the model', model)
     
     if args.task == 'train':
-        train(config, args, SELF_NAME, ROOT_DIR, model, dataset)
+        if args.mux:
+            multiplexed_train(config, args, SELF_NAME, ROOT_DIR, model, dataset)
+        else:
+            train(config, args, SELF_NAME, ROOT_DIR, model, dataset)
         
     if args.task == 'predict':
         print('=========== PREDICTION ==============')

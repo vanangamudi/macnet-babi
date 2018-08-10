@@ -24,7 +24,8 @@ from collections import namedtuple, defaultdict, Counter
 
 from anikattu.tokenizer import word_tokenize
 from anikattu.tokenstring import TokenString
-from anikattu.trainer import Trainer, MultiTrainer, Tester, Predictor
+from anikattu.trainer import Trainer, Tester, Predictor
+from anikattu.trainer.multiplexed_trainer import MultiplexedTrainer
 from anikattu.datafeed import DataFeed, MultiplexedDataFeed
 from anikattu.dataset import NLPDataset as Dataset, NLPDatasetList as DatasetList
 from anikattu.utilz import tqdm, ListTable
@@ -109,6 +110,8 @@ def load_task_data(task=1, type_='train', max_sample_size=None):
         output_vocabulary.update([sample.a])
 
     return filename, samples, input_vocabulary, output_vocabulary
+
+
 
 def load_data(config, max_sample_size=None):
     dataset = {}
@@ -274,10 +277,8 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
         dump.write(repr(results))
         dump.close()
 
-
-def adaptive_train(config, argv, name, ROOT_DIR,  model, dataset):
+def multiplexed_train(config, argv, name, ROOT_DIR,  model, dataset):
     _batchop = partial(batchop, VOCAB=dataset.input_vocab, LABELS=dataset.output_vocab)
-
     predictor_feed = DataFeed(name, dataset.testset, batchop=_batchop, batch_size=1)
     predictor = Predictor(name,
                           model=model,
@@ -290,14 +291,14 @@ def adaptive_train(config, argv, name, ROOT_DIR,  model, dataset):
 
     loss_ = partial(loss, loss_function=nn.NLLLoss())
     test_feed, tester = {}, {}
-    train_feed, trainer = {}, {}
+    train_feed = {}
     for subset in dataset.datasets:
+        test_feed[subset.name]      = DataFeed(subset.name, subset.testset,
+                                               batchop=_batchop, batch_size=config.CONFIG.batch_size)
         train_feed[subset.name]     = DataFeed(subset.name,
                                                portion(subset.trainset, config.HPCONFIG.trainset_size),
                                                batchop=_batchop, batch_size=config.CONFIG.batch_size)
-        
-        test_feed[subset.name]      = DataFeed(subset.name, subset.testset, batchop=_batchop, batch_size=config.CONFIG.batch_size)
-
+    
         tester[subset.name] = Tester(name     = subset.name,
                                      config   = config,
                                      model    = model,
@@ -306,22 +307,9 @@ def adaptive_train(config, argv, name, ROOT_DIR,  model, dataset):
                                      accuracy_function = accuracy,
                                      feed = test_feed[subset.name],
                                      save_model_weights=False)
-        
-        trainer[subset.name] = Trainer(name=subset.name,
-                                       config = config,
-                                       model=model,
-                                       directory=ROOT_DIR,
-                                       optimizer  = optim.Adam(model.parameters()),
-                                       loss_function = loss_,
-                                       checkpoint = config.CONFIG.CHECKPOINT,
-                                       do_every_checkpoint = tester[subset.name].do_every_checkpoint,
-                                       epochs = config.CONFIG.EPOCHS,
-                                       feed = train_feed[subset.name],
-        )
 
-
-
-    test_feed[name]      = DataFeed(name, dataset.testset, batchop=_batchop, batch_size=config.CONFIG.batch_size)
+    test_feed[name]      = DataFeed(name, dataset.testset,
+                                    batchop=_batchop, batch_size=config.CONFIG.batch_size)
 
     tester[name] = Tester(name  = name,
                                   config   = config,
@@ -332,38 +320,27 @@ def adaptive_train(config, argv, name, ROOT_DIR,  model, dataset):
                                   feed = test_feed[name],
                                   predictor=predictor)
 
-
-    def do_every_checkpoint(epoch):
-        from matplotlib import pyplot as plt
-        fig = plt.figure(figsize=(10, 5))
-        for t in tester.values():
-            t.do_every_checkpoint(epoch)
-            plt.plot(list(t.accuracy), label=t.name)
-            
-            plt.savefig('accuracy.png')
-            plt.close()
-        
-    train_feed[name]     = DataFeed(subset.name,
-                                           portion(dataset.trainset, config.HPCONFIG.trainset_size),
-                                           batchop=_batchop, batch_size=config.CONFIG.batch_size)
-    trainer[name] = Trainer(name=name,
-                             config = config,
-                             model=model,
-                             directory=ROOT_DIR,
-                             optimizer  = optim.Adam(model.parameters()),
-                             loss_function = loss_,
-                             checkpoint = config.CONFIG.CHECKPOINT,
-                             do_every_checkpoint = do_every_checkpoint,
-                             epochs = config.CONFIG.EPOCHS,
-                             feed = train_feed[name],
+    train_feed_muxed = MultiplexedDataFeed(name,
+                                           train_feed,
+                                           _batchop,
+                                           config.CONFIG.batch_size)
+    trainer = MultiplexedTrainer(name=name,
+                                 config = config,
+                                 model=model,
+                                 directory=ROOT_DIR,
+                                 optimizer  = optim.Adam(model.parameters()),
+                                 loss_function = loss_,
+                                 testers=tester,
+                                 checkpoint = config.CONFIG.CHECKPOINT,
+                                 epochs = config.CONFIG.EPOCHS,
+                                 feed = train_feed_muxed,
     )
 
-    master_trainer = MultiTrainer(name, config, trainer, tester, primary_trainer='main')
 
 
     for e in range(config.CONFIG.EONS):
 
-        if not master_trainer.train():
+        if not trainer.train():
             raise Exception
 
         dump = open('{}/results/eon_{}.csv'.format(ROOT_DIR, e), 'w')
@@ -374,7 +351,10 @@ def adaptive_train(config, argv, name, ROOT_DIR,  model, dataset):
             results.extend(_results)
         dump.write(repr(results))
         dump.close()
-        
+
+
+    
+
     
 def predict(config, argv, model, input_string, dataset):
                 
