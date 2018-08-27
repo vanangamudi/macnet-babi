@@ -1,0 +1,43 @@
+
+
+
+*** Reasoning 
+Informally there are three types of reasoning.  Abduction, Deduction, Induction. Induction tries to figure out the rules based on observed examples. Abduction can be thought of reverse engineering of events. It involves determining the premise or series of events which to led to something. Reasoning is mostly used to mean, deductive reasoning. Given set of premises and rules, deduction tests the validity of the conclusion. 
+
+
+*** Macnet
+MACnet takes its inspiration from computer architecture, where there is a clear distintion between control and memory. It also closely resembles the computer architecture in its implementation. Each MACCell consists of three modules. Control unit which figures out what kind of reasoning has to be done, a ReadUnit which based on the reasoning instruction, reads relevant information from the knowledge base, and WriteUnit which produces a memory vector based on the reasoning instruction and information extracted by the ReadUnit. Model section explain all three modules in detail. The primary advantage of MACCell is that, they can be cascaded to perform series of reasoning operations to achieve the desired result.
+
+
+*** Model
+The model takes in two things, a story and a question which is to be answered by the model, based on the give story. The input information is first encoded into a vector form before the reasoning operation begin. The input module in our case is an LSTM[CITE] network which encodes both the story and question. Output of the model is a probability distribution over all the answer words. The usual classifier network acts as the output module. The MACCell is sandwitched between these two. The number of steps of reasoning here is hyperparameter. This is similar to number of hops in memory networks[CITE]. 
+
+
+We describe the three modules of the MACCell from the original MACnet paper and then we contrast the difference between our network. 
+
+
+
+
+
+
+
+
+
+*** Training
+The samples from different sub-tasks are mixed in a batch and fed to the training. The batch size is 32. The MACNet state size is 40 and LSTM state size is 20. 
+
+
+
+
+*** Variations.
+
+We trained individual MACnet on all 20 tasks, and the model achieves above #TODO:latest_value percent accuracy on all tasks except path-finding and basic-induction tasks where it achieves #TODO:path-finding_accuracy and $TODO:basic-induction-accuracy respectively. 
+
+We also tried to use different lstm modules to encode story and question. 
+
+
+The interesting observation in this work, is that the MACnet increased interpretability when is comes to deductive reasoning. The following examples show some of the samples from deductive reasoning task. See how the reasoning happens, step by step. 
+
+
+*** Conclusion
+We took inspiration from the work of #TODO:MACnet-citation and applied the ideas over for NLP question answering task. The ability of the MACnet to perform deductive reasoning task and its transparency in its working is exciting. We also understand that deductive reasoning is not enough for natural language question answering, since it involves not just multiple steps of reasoning, but differnt kinds of reasoning. The MACnet tries to determine an universal reasoning operation. While the control gate bypass mechanism in write unit solves problem of fixed number of reasoning steps for simpler questions, this still limits the ability of model to generalize well enough for more complex reasoning methods.
