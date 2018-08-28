@@ -238,12 +238,17 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
 
 
     def do_every_checkpoint(epoch):
-        from matplotlib import pyplot as plt
-        fig = plt.figure(figsize=(10, 5))
+        if config.CONFIG.plot_metrics:
+            from matplotlib import pyplot as plt
+            fig = plt.figure(figsize=(10, 5))
+            
         for t in tester.values():
             t.do_every_checkpoint(epoch)
-            plt.plot(list(t.accuracy), label=t.name)
-            
+
+            if config.CONFIG.plot_metrics:
+                plt.plot(list(t.accuracy), label=t.name)
+
+        if config.CONFIG.plot_metrics:
             plt.savefig('accuracy.png')
             plt.close()
         
