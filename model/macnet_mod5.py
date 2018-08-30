@@ -59,8 +59,12 @@ class ControlUnit(Base):
     def __init__(self, config, name):
         super().__init__(config, name)
         self.hidden_size = config.HPCONFIG.hidden_size
-
-        self.query_control = nn.Linear(6 * self.hidden_size, 2 * self.hidden_size)
+        self.config = config
+        if self.config.HPCONFIG.MacNet.CU.use_prev_memory:
+            self.query_control = nn.Linear(6 * self.hidden_size, 2 * self.hidden_size)
+        else:
+            self.query_control = nn.Linear(4 * self.hidden_size, 2 * self.hidden_size)
+            
         self.attend = nn.Linear(2 * self.hidden_size, 1)
 
         if config.HPCONFIG.ACTIVATION == 'softmax':
@@ -70,8 +74,11 @@ class ControlUnit(Base):
 
 
     def forward(self, prev_control, prev_query, query_repr, memory, mask):
-        cqi = self.__( self.query_control(torch.cat([prev_control, prev_query, memory], dim=-1)), 'cqi')
-        
+        if self.config.HPCONFIG.MacNet.CU.use_prev_memory:
+            cqi = self.__( self.query_control(torch.cat([prev_control, prev_query, memory], dim=-1)), 'cqi')
+        else:
+            cqi = self.__( self.query_control(torch.cat([prev_control, prev_query], dim=-1)), 'cqi')
+            
         story_mask, question_mask = mask
         query_repr_ = query_repr * question_mask
         
@@ -84,6 +91,8 @@ class ControlUnit(Base):
 class ReadUnit(Base):
     def __init__(self, config, name):
         super().__init__(config, name)
+        self.config = config
+                
         self.hidden_size = config.HPCONFIG.hidden_size
 
         self.project_story = nn.Linear(2 * self.hidden_size, 2 * self.hidden_size)
@@ -103,10 +112,13 @@ class ReadUnit(Base):
         projected_story = self.__( self.project_story(story).view(seq_len, batch_size, hidden_size), 'projected_story')
         projected_memory = self.__( self.project_memory(memory), 'projected_memory')
         Iihw  = self.__( projected_memory * projected_story, 'Iihw')
-        Iihwp = self.__(self.blend(torch.cat([Iihw, story], dim=-1)), 'Iihwp')
 
-        Iihwp_ = self.__( Iihwp, 'Iihwp_' )
-        
+        if self.config.HPCONFIG.MacNet.RU.use_story_again:
+            Iihwp = self.__(self.blend(torch.cat([Iihw, story], dim=-1)), 'Iihwp')
+            Iihwp_ = self.__( Iihwp, 'Iihwp_' )
+        else:
+            Iihwp_ = Iihw
+            
         story_mask, question_mask = mask
         Iihwp_ = Iihwp_ * story_mask
         control = self.__( control.unsqueeze(0).expand_as(Iihwp_), 'control')
@@ -120,33 +132,38 @@ class WriteUnit(Base):
     def __init__(self, config, name):
         super().__init__(config, name)
         self.hidden_size = config.HPCONFIG.hidden_size
-
+        self.config = config
         self.memory_info = nn.Linear(4 * self.hidden_size, 2 * self.hidden_size)
-        self.attend = nn.Linear(2 * self.hidden_size, 1)
-
-        self.project_memory = nn.Linear(2 * self.hidden_size, 2 * self.hidden_size)
-        self.project_memories = nn.Linear(2 * self.hidden_size, 2 * self.hidden_size)
         self.project_control = nn.Linear(2 * self.hidden_size, 1)
+        
+        if self.config.HPCONFIG.MacNet.WU.graph_reasoning:
+            self.attend = nn.Linear(2 * self.hidden_size, 1)
+            
+            self.project_memory = nn.Linear(2 * self.hidden_size, 2 * self.hidden_size)
+            self.project_memories = nn.Linear(2 * self.hidden_size, 2 * self.hidden_size)
+
         
     def forward(self, memory, read_info, control, prev_controls, prev_memories):
         
         prev_controls = self.__( torch.stack(prev_controls), 'prev_controls')
         prev_memories = self.__( torch.stack(prev_memories), 'prev_memories')
-        
         minfo = self.__( self.memory_info(torch.cat([memory, read_info], dim=-1)), 'minfo')
-        control_ = self.__( control.unsqueeze(0).expand_as(prev_controls), 'control')
-                
-        saij = self.__( F.softmax(self.attend(control_ * prev_controls), dim=0), 'saij')
-        misa = self.__( (saij * prev_memories).sum(dim=0), 'misa')
-
-        projected_memory = self.__( self.project_memory(minfo), 'projected_memory')
-        projected_memories = self.__( self.project_memories(misa), 'projected_memories')
-        mip = self.__( projected_memory + projected_memories, 'mi prime' )
 
         projected_control = F.sigmoid(self.__(self.project_control(control), 'projected_control'))
-
-        mi = self.__( projected_control * memory + (1-projected_control) * mip, 'mi')
-
+        if self.config.HPCONFIG.MacNet.WU.graph_reasoning:
+            control_ = self.__( control.unsqueeze(0).expand_as(prev_controls), 'control')
+                
+            saij = self.__( F.softmax(self.attend(control_ * prev_controls), dim=0), 'saij')
+            misa = self.__( (saij * prev_memories).sum(dim=0), 'misa')
+            
+            projected_memory = self.__( self.project_memory(minfo), 'projected_memory')
+            projected_memories = self.__( self.project_memories(misa), 'projected_memories')
+            mip = self.__( projected_memory + projected_memories, 'mi prime' )
+            
+        else:
+            mip = minfo
+            
+        mi = self.__( projected_control * memory + (1-projected_control) * mip, 'mi')            
         return mi, projected_control
         
         
@@ -163,7 +180,11 @@ class MacNet(Base):
         self.embed = nn.Embedding(self.input_vocab_size, self.embed_size)
         
         self.encode_story  = nn.GRU(self.embed.embedding_dim, self.hidden_size, bidirectional=True, num_layers=config.HPCONFIG.num_layers)
-        self.encode_question = nn.GRU(self.embed.embedding_dim, self.hidden_size, bidirectional=True, num_layers=config.HPCONFIG.num_layers)
+        if self.config.HPCONFIG.MacNet.same_rnn:
+            self.encode_question = self.encode_story
+        else:
+            self.encode_question = nn.GRU(self.embed.embedding_dim, self.hidden_size, bidirectional=True, num_layers=config.HPCONFIG.num_layers)
+            
         self.dropout = nn.Dropout(0.1)
 
         self.produce_qi = nn.Linear(4*self.hidden_size, 2 * self.hidden_size)
@@ -207,7 +228,7 @@ class MacNet(Base):
         
         question  = question.transpose(1,0)
         question_mask  = question_mask.transpose(1,0)
-        question, _ = self.__(  self.encode_story(
+        question, _ = self.__(  self.encode_question(
             question,
             init_hidden(batch_size, self.encode_question)), 'Q'
         )
