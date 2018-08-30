@@ -15,16 +15,16 @@ class CONFIG(Base):
     split_ratio = 0.90
     dropout = 0.1
     cuda = True
-    multi_gpu = True
+    multi_gpu = False
     tqdm = True
     flush = False
     batch_size = 50
-    plot_metrics = True
+    plot_metrics = False
     
     CHECKPOINT = 1
-    EPOCHS = 5
-    EONS=1
-    TIMES=10
+    EPOCHS = 50
+    EONS=4
+    #TIMES=10
     ACCURACY_THRESHOLD=0.9
     ACCURACY_IMPROVEMENT_THRESHOLD=0.05
     
