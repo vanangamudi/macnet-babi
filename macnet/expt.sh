@@ -6,7 +6,7 @@ time python main.py --hpconfig hpconfig.py  train
 for i in $(seq 1 20)
 do
     echo $(date)
-    time python main.py --hpconfig hpconfig$i.py  train && echo (date)
+    time python main.py --hpconfig hpconfig$i.py  train && echo $(date)
 done
 
 time python main.py --hpconfig hpconfig_10percent_dataset.py  train  && echo $(date)
