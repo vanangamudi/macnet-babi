@@ -45,7 +45,7 @@ PAD = VOCAB.index('PAD')
 """
 MacNetSample   =  namedtuple('MacNetSample', ['id', 'aid', 'qid', 'task_name', 'story', 'q', 'a'])
 
-def load_task_data(task=1, type_='train', max_sample_size=None):
+def load_task_data(config, task=1, type_='train', max_sample_size=None):
     samples = []
     qn, an = 0, 0
     skipped = 0
@@ -74,6 +74,10 @@ def load_task_data(task=1, type_='train', max_sample_size=None):
             if '?' in line:
                 q, a, _ = line.split('\t')
 
+                if config.max_story_len:
+                    if config.max_story_len < len(word_tokenize(story)):
+                        continue
+                    
                 samples.append(
                     MacNetSample('{}.{}'.format(task, linenum),
                            task, linenum,
@@ -116,8 +120,8 @@ def load_task_data(task=1, type_='train', max_sample_size=None):
 def load_data(config, max_sample_size=None):
     dataset = {}
     for i in config.HPCONFIG.tasks:
-        filename, train_samples, train_input_vocab, train_output_vocab = load_task_data(task=i, type_='train', max_sample_size=max_sample_size)
-        filename, test_samples, test_input_vocab, test_output_vocab = load_task_data(task=i, type_='test', max_sample_size=max_sample_size)
+        filename, train_samples, train_input_vocab, train_output_vocab = load_task_data(config, task=i, type_='train', max_sample_size=max_sample_size)
+        filename, test_samples, test_input_vocab, test_output_vocab = load_task_data(config, task=i, type_='test', max_sample_size=max_sample_size)
         task_name = re.search(r'qa\d+_(.*)_.*.txt', filename)
 
         if task_name:

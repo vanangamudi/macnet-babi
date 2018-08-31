@@ -32,6 +32,7 @@ class CONFIG(Base):
     ] 
 
     trainset_size = 1.0
+    max_story_len = 50
     hidden_size = 20
     embed_size = 20
     num_layers = 1
@@ -40,8 +41,6 @@ class CONFIG(Base):
     LR = 0.001
     MOMENTUM=0.1
     ACTIVATION = 'softmax'
-
-
 
     class MacNet(Base):
         same_rnn = True
