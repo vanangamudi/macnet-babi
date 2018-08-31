@@ -22,8 +22,8 @@ class CONFIG(Base):
     plot_metrics = False
     
     CHECKPOINT = 1
-    EPOCHS = 50
-    EONS=4
+    EPOCHS = 5
+    EONS=2
     #TIMES=10
     ACCURACY_THRESHOLD=0.9
     ACCURACY_IMPROVEMENT_THRESHOLD=0.05
