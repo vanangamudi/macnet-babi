@@ -35,7 +35,7 @@ class CONFIG(Base):
     hidden_size = 20
     embed_size = 20
     num_layers = 1
-    reasoning_steps = 4
+    reasoning_steps = 2
     
     LR = 0.001
     MOMENTUM=0.1
@@ -45,11 +45,11 @@ class CONFIG(Base):
         same_rnn = True
 
         class CU(Base):
-            use_prev_memory = False
+            use_prev_memory = True
 
         class RU(Base):
             use_story_again = True
 
         class WU(Base):
-            graph_reasoning = False
+            graph_reasoning = True
         
