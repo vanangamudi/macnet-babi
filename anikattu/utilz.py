@@ -27,7 +27,7 @@ def mkdir_if_exist_not(name):
     
 def initialize_task(hpconfig = 'hpconfig.py'):
     log.info('loading hyperparameters from {}'.format(hpconfig))
-    root_dir = hash_file(hpconfig)[-6:]
+    root_dir = hpconfig.replace('.py', '') + '__' +hash_file(hpconfig)[-6:]
     mkdir_if_exist_not(root_dir)
     mkdir_if_exist_not('{}/results'.format(root_dir))
     mkdir_if_exist_not('{}/results/metrics'.format(root_dir))
