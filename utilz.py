@@ -276,7 +276,7 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
         dump = open('{}/results/eon_{}.csv'.format(ROOT_DIR, e), 'w')
         log.info('on {}th eon'.format(e))
         results = ListTable()
-        for ri in tqdm(range(predictor_feed.num_batch), desc='\nrunning prediction on eon: {}'.format(e)):
+        for ri in tqdm(range(predictor_feed.num_batch), desc='running prediction on eon: {}'.format(e)):
             output, _results = predictor.predict(ri)
             results.extend(_results)
         dump.write(repr(results))

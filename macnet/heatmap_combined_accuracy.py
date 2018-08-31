@@ -67,7 +67,7 @@ hpconfig = 'hpconfig'
 HPCONFIG = importlib.__import__(hpconfig)
 tasks = '-'.join(str(i) for i in HPCONFIG.CONFIG.tasks)
 root_dir= initialize_task(hpconfig + '.py')
-
+print('root_dir: {}'.format(root_dir))
 for filename in glob.glob('{}/results/metrics/*.accuracy.pkl'.format(root_dir)):
     try:
         task = os.path.basename(filename).split('.')[0]
