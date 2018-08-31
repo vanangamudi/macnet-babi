@@ -26,7 +26,7 @@ class CONFIG(Base):
         #15,   # basic-deduction
         #16,   # basic-induction
         #17,   # positional-reasoning
-        18,   # size-reasoning
+        #18,   # size-reasoning
         #19,   # path-finding
         #20,   # agent-motivations
     ] 

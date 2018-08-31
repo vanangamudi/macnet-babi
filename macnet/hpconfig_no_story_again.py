@@ -49,7 +49,7 @@ class CONFIG(Base):
             use_prev_memory = True
 
         class RU(Base):
-            use_story_again = True
+            use_story_again = False
 
         class WU(Base):
             graph_reasoning = True

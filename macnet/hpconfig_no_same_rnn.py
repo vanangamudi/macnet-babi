@@ -43,7 +43,7 @@ class CONFIG(Base):
     ACTIVATION = 'softmax'
 
     class MacNet(Base):
-        same_rnn = True
+        same_rnn = False
 
         class CU(Base):
             use_prev_memory = True

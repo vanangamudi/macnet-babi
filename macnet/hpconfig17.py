@@ -32,7 +32,7 @@ class CONFIG(Base):
     ] 
 
     trainset_size = 1.0
-    max_story_len = 50
+    max_story_len = 0
     hidden_size = 20
     embed_size = 20
     num_layers = 1

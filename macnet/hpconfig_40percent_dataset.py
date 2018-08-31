@@ -31,7 +31,7 @@ class CONFIG(Base):
         20,   # agent-motivations
     ] 
 
-    trainset_size = 1.0
+    trainset_size = 0.40
     max_story_len = 0
     hidden_size = 20
     embed_size = 20

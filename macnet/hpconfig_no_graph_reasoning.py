@@ -52,5 +52,5 @@ class CONFIG(Base):
             use_story_again = True
 
         class WU(Base):
-            graph_reasoning = True
+            graph_reasoning = False
         
