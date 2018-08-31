@@ -74,8 +74,8 @@ def load_task_data(config, task=1, type_='train', max_sample_size=None):
             if '?' in line:
                 q, a, _ = line.split('\t')
 
-                if config.max_story_len:
-                    if config.max_story_len < len(word_tokenize(story)):
+                if config.HPCONFIG.max_story_len and  type_ == 'train':
+                    if config.HPCONFIG.max_story_len < len(word_tokenize(story)):
                         continue
                     
                 samples.append(
