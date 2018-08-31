@@ -68,6 +68,8 @@ if __name__ == '__main__':
     print(sys.path)
     HPCONFIG = importlib.__import__(args.hpconfig.replace('.py', ''))
     config.HPCONFIG = HPCONFIG.CONFIG
+    config.ROOT_DIR = ROOT_DIR
+    config.NAME = SELF_NAME
     print('====================================')
     print(ROOT_DIR)
     print('====================================')

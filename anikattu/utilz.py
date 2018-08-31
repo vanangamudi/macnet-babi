@@ -32,6 +32,7 @@ def initialize_task(hpconfig = 'hpconfig.py'):
     mkdir_if_exist_not('{}/results'.format(root_dir))
     mkdir_if_exist_not('{}/results/metrics'.format(root_dir))
     mkdir_if_exist_not('{}/weights'.format(root_dir))
+    mkdir_if_exist_not('{}/plots'.format(root_dir))
 
     shutil.copy(hpconfig, root_dir)
     shutil.copy('config.py', root_dir)
