@@ -357,12 +357,8 @@ def multiplexed_train(config, argv, name, ROOT_DIR,  model, dataset):
         dump.write(repr(results))
         dump.close()
 
-
     
-
-    
-def predict(config, argv, model, input_string, dataset):
-                
+def predict(config, argv, task, model, input_string, dataset):                
     story, question = input_string.lower().split('|') 
     story_tokens = word_tokenize(story)
     question_tokens = word_tokenize(question)
@@ -375,9 +371,9 @@ def predict(config, argv, model, input_string, dataset):
     )
             
     output = model(input_)
-    plot_attn1(config, argv, question_tokens, story_tokens, output, dataset)
+    plot_attn1(config, argv, task, question_tokens, story_tokens, output, dataset)
     
-def plot_attn1(config, argv, question_tokens, story_tokens, output, dataset):
+def plot_attn1(config, argv, task, question_tokens, story_tokens, output, dataset):
     output, (sattn, qattn, mattn) = output
     sattn = sattn.squeeze().data.cpu()
     qattn = qattn.squeeze().data.cpu()
@@ -396,8 +392,14 @@ def plot_attn1(config, argv, question_tokens, story_tokens, output, dataset):
     if 'show_plot' in argv or 'save_plot' in argv:
         from matplotlib import pyplot as plt
         plt.style.use('ggplot')
-        fig, axes = plt.subplots(sattn.size(0), 2, figsize=( max(2, sattn.size(1)),  max(16, sattn.size(0))),
-                                 gridspec_kw = {'width_ratios':[len(question_tokens), len(story_tokens)]})
+        fig, axes = plt.subplots(sattn.size(0), 2,
+                                 figsize=( max(2, sattn.size(1)),  max(16, sattn.size(0))),
+                                 gridspec_kw = {
+                                     'width_ratios': [
+                                         len(question_tokens),
+                                         len(story_tokens)]
+                                 }
+        )
 
         if axes.ndim == 1: axes = axes.reshape(1, -1)
         #if type(axes[0]) != list: axes = [axes]
@@ -421,7 +423,7 @@ def plot_attn1(config, argv, question_tokens, story_tokens, output, dataset):
             
         
         if 'save_plot' in argv:
-            plt.savefig('{}/plots/{}.png'.format(config.ROOT_DIR, '_'.join(question_tokens)))
+            plt.savefig('{}/plots/{}/{}.png'.format(config.ROOT_DIR, task,  '_'.join(question_tokens)))
             
         if 'show_plot' in argv:
             plt.show()

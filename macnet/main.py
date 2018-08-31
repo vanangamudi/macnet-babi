@@ -21,7 +21,7 @@ from torch.nn import functional as F
 from torch.autograd import Variable
 import torch
 
-from anikattu.utilz import initialize_task
+from anikattu.utilz import initialize_task, tqdm
 
 from model.macnet_mod5 import MacNet
 from utilz import load_data, train, multiplexed_train, predict
@@ -55,6 +55,7 @@ if __name__ == '__main__':
                                 help='''starts a cli interface for running predictions 
                                 in inputs with best model from last training run''')
     predict_parser.add_argument('--predict', default='predict', dest='task')
+    predict_parser.add_argument('--over-test-feed', action='store_true', dest='over_test_feed')
     predict_parser.add_argument('--show-plot', action='store_true', dest='show_plot')
     predict_parser.add_argument('--save-plot', action='store_true',  dest='save_plot')
     args = parser.parse_args()
@@ -112,14 +113,22 @@ if __name__ == '__main__':
         print('=========== PREDICTION ==============')
         model.eval()
         count = 0
-        while True:
-            count += 1
-            input_string = input('?')
-            if not input_string:
-                continue
+        
+        if args.over_test_feed:
+            for subset in dataset.datasets:
+                for sample in tqdm(subset.testset, desc=subset.name):
+                    predict(config, args, subset.name, model, input_string, dataset)
+                    count += 1
+
+        else:
+            while True:
+                count += 1
+                input_string = input('?')
+                if not input_string:
+                    continue
             
-            predict(config, args, model, input_string, dataset)            
-            print('Done')
+                predict(config, args, 'main',  model, input_string, dataset)            
+                print('Done')
                 
                         
     if 'service' in sys.argv:
