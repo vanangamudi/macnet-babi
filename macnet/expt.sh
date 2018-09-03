@@ -46,13 +46,5 @@ function story_len {
 
 }
 
-
-export CUDA_VISIBLE_DEVICES=0
-dataset_subset &
-
-export CUDA_VISIBLE_DEVICES=1
-reasoning_steps&
-
-export CUDA_VISIBLE_DEVICES=2
-normal
-story_len
+#https://stackoverflow.com/questions/8818119/how-can-i-run-a-function-from-a-script-in-command-line
+"$@"
