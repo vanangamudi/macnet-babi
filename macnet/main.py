@@ -37,7 +37,7 @@ import argparse
 from matplotlib import pyplot as plt
 plt.style.use('ggplot')
 if __name__ == '__main__':
-
+    start = time.time()
     parser = argparse.ArgumentParser(description='MACNet variant 2')
     parser.add_argument('-p','--hpconfig',
                         help='path to the hyperparameters config file',
@@ -47,6 +47,10 @@ if __name__ == '__main__':
                         dest='log_filter')
 
     subparsers = parser.add_subparsers(help='commands')
+
+    donothing_parser = subparsers.add_parser('donothing', help='does nothing')
+    donothing_parser.add_argument('--donothing', default='donothing', dest='task')
+    
     train_parser = subparsers.add_parser('train', help='starts training')
     train_parser.add_argument('--train', default='train', dest='task')
     train_parser.add_argument('--mux', action='store_true', default=False, dest='mux')
@@ -166,3 +170,6 @@ if __name__ == '__main__':
 
         print('model running on port:5010')
         app.run(host='0.0.0.0',port=5010)
+        
+    end = time.time()
+    print('{} ELAPSED: {}'.format(ROOT_DIR, end - start))
