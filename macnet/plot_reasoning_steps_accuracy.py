@@ -30,5 +30,5 @@ if __name__ == '__main__':
     plot_accuracies(epoch_limit,
                     min_epoch_count, max_epoch_count,
                     accuracies.items(), task_ids,
-                    'Story Len X Accuracy',
-                    'story_len_training_accuracy.png')
+                    'Reasoning Steps X Accuracy',
+                    'reasoning_steps_training_accuracy.png')
