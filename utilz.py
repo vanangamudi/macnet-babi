@@ -426,10 +426,10 @@ def plot_attn1(config, argv, task, question_tokens, story_tokens, output, datase
             plt.xticks(range(nwords), story_tokens, rotation='vertical')
             
         
-        if 'save_plot' in argv:
+        if argv.save_plot:
             plt.savefig('{}/plots/{}/{}.png'.format(config.ROOT_DIR, task,  '_'.join(question_tokens)))
             
-        if 'show_plot' in argv:
+        if argv.show_plot:
             plt.show()
         plt.close()
     

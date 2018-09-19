@@ -75,6 +75,6 @@ if __name__ == '__main__':
     
     plot_accuracies(epoch_limit,
                     min_epoch_count, max_epoch_count,
-                    accuracies, task_ids,
+                    accuracies.items(), task_ids,
                     'Accuracies (individually trained)',
                     'individual_training_accuracy.png')

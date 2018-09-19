@@ -20,6 +20,6 @@ if __name__ == '__main__':
     accuracies, min_epoch_count, max_epoch_count = read_pkls()    
     plot_accuracies(epoch_limit,
                     min_epoch_count, max_epoch_count,
-                    accuracies, task_ids,
+                    accuracies.items(), task_ids,
                     'Individual Training Accuracy',
                     'individual_training_accuracy.png')

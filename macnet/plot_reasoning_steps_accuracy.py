@@ -22,13 +22,20 @@ hpconfigs = [
     'hpconfig_3_reasoning_steps',
     'hpconfig_4_reasoning_steps',
     'hpconfig_5_reasoning_steps',
+    'hpconfig',
 ]
 
 if __name__ == '__main__':
     accuracies, min_epoch_count, max_epoch_count = read_pkls(hpconfigs, 'hpconfig_(\d+)_reasoning_steps')
     pprint(accuracies)
+    labels = {k:'steps = {}'.format(k) for k in accuracies.keys() if k != 'main'}
+    labels['main'] = 'steps = 2'
     plot_accuracies(epoch_limit,
                     min_epoch_count, max_epoch_count,
                     accuracies.items(), task_ids,
-                    'Reasoning Steps X Accuracy',
-                    'reasoning_steps_training_accuracy.png')
+                    'Reasoning Steps',
+                    'reasoning_steps_training_accuracy.png',
+                    labels = labels,
+                    y_offsets = {},
+                    ylim = (0.6, 1)
+    )

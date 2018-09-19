@@ -142,7 +142,7 @@ def plot_accuracies(epoch_limit,
 
     labels = []
     matrix = []
-    for i, (task_name, acc) in  enumerate(accuracies_):
+    for i, (task_name, acc) in  enumerate(accuracies):
         labels.append('{}({:0.2f}/{:0.2f})'.format(task_name, max(acc), acc[right_most_boundary-1]))
         matrix.append(acc[:right_most_boundary])
 

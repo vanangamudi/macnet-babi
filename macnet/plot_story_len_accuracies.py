@@ -31,8 +31,13 @@ hpconfigs = [
 if __name__ == '__main__':
     accuracies, min_epoch_count, max_epoch_count = read_pkls(hpconfigs, 'hpconfig_story_len_(\d+)')
     pprint(accuracies)
+    labels = {k:'story_len = {}'.format(k) for k in accuracies.keys()}
+    labels['main'] = 'main'
     plot_accuracies(epoch_limit,
                     min_epoch_count, max_epoch_count,
                     accuracies.items(), task_ids,
-                    'Story Len X Accuracy',
-                    'story_len_training_accuracy.png')
+                    'Story length',
+                    'story_len_training_accuracy.png',
+                    labels = labels,
+                    y_offsets = {},
+)

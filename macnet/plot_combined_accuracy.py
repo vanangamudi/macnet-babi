@@ -8,7 +8,7 @@ plt.style.use('ggplot')
 import pickle
 import glob
 
-
+import numpy as np
 from heatmap_combined_accuracy import task_names, task_ids
 from heatmap_combined_accuracy import read_pkls
 
@@ -18,12 +18,12 @@ colors = {
     3: '#FF1493',
     4: '#DB7093',
     5: '#FF6347',
-    6: '#FF4500',
-    7: '#FFFF00',
+    6: '#FF3000',
+    7: '#663399',
     8: '#FFDAB9',
     9: '#EE82EE',
     10: '#FF00FF',
-    11: '#663399',
+    11: '#FFFF00',
     12: '#4B0082',
     13: '#ADFF2F',
     14: '#00FF00',
@@ -38,16 +38,25 @@ colors = {
 
 epoch_limit = 200
 
+def calc_moving_avg(p, N = 5):
+    return np.convolve(p , np.ones((N,))/N, mode='same')[:-1]
+
 def plot_accuracies(epoch_limit,
                     min_epoch_count, max_epoch_count,
                     accuracies, task_ids,
                     plot_title='Combined Accuracy',
                     plot_filepath='combined_accuracy_heatmap.png',
+                    labels = {},
+                    y_offsets = {},
+                    ylabel = 'Accuracy',
+                    xlabel = 'Epoch',
+                    ylim = (0, 1),
+                    moving_avg = 0,
 ):
     # You typically want your plot to be ~1.33x wider than tall. This plot
     # is a rare exception because of the number of lines being plotted on it.
     # Common sizes: (10, 7.5) and (12, 9)
-    fig, ax = plt.subplots(1, 1, figsize=(6, 7))
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
 
     # Remove the plot frame lines. They are unnecessary here.
     ax.spines['top'].set_visible(False)
@@ -85,7 +94,11 @@ def plot_accuracies(epoch_limit,
                     labelbottom='on', left='off', right='off', labelleft='on')
 
     for i, (task_name, acc) in enumerate(accuracies):
-        line = plt.plot(acc[: right_most_boundary],
+        p = acc[: right_most_boundary]
+        if moving_avg:
+            p = calc_moving_avg(p, moving_avg)
+            
+        line = plt.plot(p,
                         lw=2.5,
                         color=colors[i+1])
 
@@ -93,13 +106,18 @@ def plot_accuracies(epoch_limit,
         # is adding specific offsets y position because some labels overlapped.
         acc_ = acc[:right_most_boundary]
         y_pos = acc_[-1] #- 0.5
-        """
-        if column in y_offsets:
-            y_pos += y_offsets[column]
-        """
+
+
         # Again, make sure that all labels are large enough to be easily read
         # by the viewer.
         task_name = os.path.basename(task_name)
+
+        if task_name in y_offsets:
+            y_pos += y_offsets[task_name]
+
+        if task_name in labels:
+            task_name = labels[task_name]
+
         plt.text(right_most_boundary + 0.5 , y_pos,
                  '{}({:0.3f})'.format(task_name, acc_[-1]),
                  fontsize=14, color=colors[i+1])
@@ -114,7 +132,9 @@ def plot_accuracies(epoch_limit,
     # Finally, save the figure as a PNG.
     # You can also save it as a PDF, JPEG, etc.
     # Just change the file extension in this call.
-    plt.ylim(0,1)
+    plt.ylim(*ylim)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
     plt.savefig(plot_filepath, bbox_inches='tight')
     plt.show()
 
@@ -127,4 +147,5 @@ if __name__ == '__main__':
                     min_epoch_count, max_epoch_count,
                     accuracies, task_ids,
                     'Combined Training Accuracy',
-                    'combined_training_accuracy.png')
+                    'combined_training_accuracy.png',
+                    moving_avg = 7)

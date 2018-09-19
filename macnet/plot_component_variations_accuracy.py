@@ -63,5 +63,9 @@ if __name__ == '__main__':
     plot_accuracies(epoch_limit,
                     min_epoch_count, max_epoch_count,
                     accuracies.items(), task_ids,
-                    'Components removed X Accuracy',
-                    'components_removed_training_accuracy.png')
+                      'Ablation study',
+                    'components_removed_training_accuracy.png',
+                    y_offsets = {'main': 0.0015, 'no_story_again': -0.0015, 'no_same_rnn' : -0.001},
+                    ylim = (0.85, 1),
+                    moving_avg = 4,
+    )
