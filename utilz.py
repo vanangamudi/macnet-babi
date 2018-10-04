@@ -276,7 +276,7 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
 
         if not trainer.train():
             raise Exception
-
+        """
         dump = open('{}/results/eon_{}.csv'.format(ROOT_DIR, e), 'w')
         log.info('on {}th eon'.format(e))
         results = ListTable()
@@ -285,7 +285,8 @@ def train(config, argv, name, ROOT_DIR,  model, dataset):
             results.extend(_results)
         dump.write(repr(results))
         dump.close()
-
+        """
+        
 def multiplexed_train(config, argv, name, ROOT_DIR,  model, dataset):
     _batchop = partial(batchop, VOCAB=dataset.input_vocab, LABELS=dataset.output_vocab)
     predictor_feed = DataFeed(name, dataset.testset, batchop=_batchop, batch_size=1)
@@ -375,7 +376,7 @@ def predict(config, argv, task, model, input_string, dataset):
     )
             
     output = model(input_)
-    plot_attn1(config, argv, task, question_tokens, story_tokens, output, dataset)
+    heatmap_attn1(config, argv, task, question_tokens, story_tokens, output, dataset)
     
 def plot_attn1(config, argv, task, question_tokens, story_tokens, output, dataset):
     output, (sattn, qattn, mattn) = output
@@ -397,7 +398,8 @@ def plot_attn1(config, argv, task, question_tokens, story_tokens, output, datase
         from matplotlib import pyplot as plt
         plt.style.use('ggplot')
         fig, axes = plt.subplots(sattn.size(0), 2,
-                                 figsize=( max(2, sattn.size(1)),  max(16, sattn.size(0))),
+                                 #figsize=( max(2, sattn.size(1)),  max(8, sattn.size(0))),
+                                 figsize=( 16, 2 * sattn.size(0)),
                                  gridspec_kw = {
                                      'width_ratios': [
                                          len(question_tokens),
@@ -425,6 +427,63 @@ def plot_attn1(config, argv, task, question_tokens, story_tokens, output, datase
             plt.bar(range(nwords), sattn[i].tolist())
             plt.xticks(range(nwords), story_tokens, rotation='vertical')
             
+        
+        if argv.save_plot:
+            plt.savefig('{}/plots/{}/{}.png'.format(config.ROOT_DIR, task,  '_'.join(question_tokens)))
+            
+        if argv.show_plot:
+            plt.show()
+        plt.close()
+
+
+
+def heatmap_attn1(config, argv, task, question_tokens, story_tokens, output, dataset):
+    output, (sattn, qattn, mattn) = output
+    sattn = sattn.squeeze().data.cpu()
+    qattn = qattn.squeeze().data.cpu()
+    print('story_tokens', len(story_tokens))
+
+    if sattn.dim() == 1: sattn = sattn.unsqueeze(0)
+    if qattn.dim() == 1: qattn = qattn.unsqueeze(0)
+    print('sattn', sattn.size())
+    print('qattn', qattn.size())
+
+    #story_tokens += ['EOS']
+    #question_tokens += ['EOS']
+
+    answer = dataset.output_vocab[output.max(1)[1]]
+    print(answer)
+    if 'show_plot' in argv or 'save_plot' in argv:
+        from matplotlib import pyplot as plt
+        plt.style.use('classic')
+        fig, axes = plt.subplots(2, 1,
+                                 figsize=(max(4, sattn.size(0)), sattn.size(1)// 4),
+                                 gridspec_kw = {
+                                     'height_ratios': [
+                                         len(question_tokens),
+                                         len(story_tokens)]
+                                 }
+        )
+
+        if axes.ndim == 1: axes = axes.reshape(1, -1)
+        #if type(axes[0]) != list: axes = [axes]
+        plt.suptitle('{}\n{}'.format(' '.join(question_tokens), answer))
+        qax, sax = axes[0]
+        for ax, attn, words in zip(axes[0], [qattn, sattn], [question_tokens, story_tokens]):
+            print(ax)
+            print(attn)
+            nwords = len(words)
+            plt.sca(ax)
+            ax.matshow(attn.transpose(0,1), clim=(0,1), cmap='Blues')
+            plt.yticks(range(nwords), words)
+            ax.set_aspect(aspect=0.4)
+
+        qax.xaxis.set_label_position('top') 
+        qax.set_xlabel('Reasoning Steps')
+        qax.set_xticks(range(sattn.size(0)), minor = False)
+        sax.set_xticks([])
+        
+        plt.subplots_adjust(left=0.1, hspace=0.01)
         
         if argv.save_plot:
             plt.savefig('{}/plots/{}/{}.png'.format(config.ROOT_DIR, task,  '_'.join(question_tokens)))
