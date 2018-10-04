@@ -46,7 +46,7 @@ class CONFIG(Base):
         same_rnn = True
 
         class CU(Base):
-            use_prev_memory = False
+            use_prev_memory = True
 
         class RU(Base):
             use_story_again = True
