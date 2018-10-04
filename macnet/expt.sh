@@ -12,7 +12,7 @@ function normal {
 }
 
 function dataset_subset {
-
+    export CUDA_VISIBLE_DEVICES=0
     time python main.py --prefix-dir $2 --hpconfig hpconfig_10percent_dataset.py  train  && echo $(date)
     time python main.py --prefix-dir $2 --hpconfig hpconfig_20percent_dataset.py  train  && echo $(date)
     time python main.py --prefix-dir $2 --hpconfig hpconfig_30percent_dataset.py  train  && echo $(date)
@@ -23,6 +23,7 @@ function dataset_subset {
 }
 
 function reasoning_steps {
+    export CUDA_VISIBLE_DEVICES=1
     time python main.py --prefix-dir $2 --hpconfig hpconfig_1_reasoning_steps.py  train  && echo $(date)
     time python main.py --prefix-dir $2 --hpconfig hpconfig_3_reasoning_steps.py  train  && echo $(date)
     time python main.py --prefix-dir $2 --hpconfig hpconfig_4_reasoning_steps.py  train  && echo $(date)
@@ -30,6 +31,7 @@ function reasoning_steps {
 }
 
 function component_variations {
+    export CUDA_VISIBLE_DEVICES=2
     time python main.py --prefix-dir $2 --hpconfig hpconfig_no_graph_reasoning.py train  && echo $(date)
     time python main.py --prefix-dir $2 --hpconfig hpconfig_no_prev_mem.py	      train  && echo $(date)
     time python main.py --prefix-dir $2 --hpconfig hpconfig_no_same_rnn.py	      train  && echo $(date)
