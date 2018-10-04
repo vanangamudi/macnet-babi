@@ -42,6 +42,11 @@ if __name__ == '__main__':
     parser.add_argument('-p','--hpconfig',
                         help='path to the hyperparameters config file',
                         default='hpconfig.py', dest='hpconfig')
+    
+    parser.add_argument('-d', '--prefix-dir',
+                        help='path to the results',
+                        default='run00', dest='prefix_dir')
+    
     parser.add_argument('--log-filters',
                         help='log filters',
                         dest='log_filter')
@@ -67,7 +72,7 @@ if __name__ == '__main__':
     if args.log_filter:
         log.addFilter(CMDFilter(args.log_filter))
 
-    ROOT_DIR = initialize_task(args.hpconfig)
+    ROOT_DIR = initialize_task(args.hpconfig, args.prefix_dir)
 
     sys.path.append('.')
     print(sys.path)
