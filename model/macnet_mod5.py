@@ -223,14 +223,14 @@ class MacNet(Base):
         story_mask  = story_mask.transpose(1,0)
         story, _  = self.__(  self.encode_story(
             story,
-            init_hidden(batch_size, self.encode_story)), 'C'
+            init_hidden(self.config, batch_size, self.encode_story)), 'C'
         )
         
         question  = question.transpose(1,0)
         question_mask  = question_mask.transpose(1,0)
         question, _ = self.__(  self.encode_question(
             question,
-            init_hidden(batch_size, self.encode_question)), 'Q'
+            init_hidden(self.config, batch_size, self.encode_question)), 'Q'
         )
 
         story_mask = story_mask.unsqueeze(-1).expand_as(story).float()
@@ -239,8 +239,8 @@ class MacNet(Base):
         mask = (story_mask, question_mask)
         
         c, m, r = [], [], []
-        c.append(Var(np.zeros((batch_size, 2 * self.hidden_size))))
-        m.append(Var(np.zeros((batch_size, 2 * self.hidden_size))))
+        c.append(Var(self.config, np.zeros((batch_size, 2 * self.hidden_size))))
+        m.append(Var(self.config, np.zeros((batch_size, 2 * self.hidden_size))))
         qi = self.dropout(self.produce_qi(torch.cat([question[-1], m[-1]], dim=-1)))
 
         qattns, sattns, mattns = [], [], []

@@ -1,4 +1,3 @@
-import config
 from pprint import pprint, pformat
 
 import os
@@ -59,7 +58,7 @@ from pprint import pprint, pformat
 from tqdm import tqdm as _tqdm
 
 def tqdm(a, *args, **kwargs):
-    return _tqdm(a, ncols=100,  *args, **kwargs) if config.CONFIG.tqdm else a
+    return _tqdm(a, ncols=100,  *args, **kwargs) # if config.CONFIG.tqdm else a
 
 
 def squeeze(lol):
@@ -149,19 +148,19 @@ def are_weights_same(model1, model2):
             return False
     return True
 
-def LongVar(array, requires_grad=False):
-    return Var(array, requires_grad).long()
+def LongVar(config, array, requires_grad=False):
+    return Var(config, array, requires_grad).long()
 
-def Var(array, requires_grad=False):
+def Var(config, array, requires_grad=False):
     ret =  Variable(torch.Tensor(array), requires_grad=requires_grad)
     if config.CONFIG.cuda:
         ret = ret.cuda()
 
     return ret
 
-def init_hidden(batch_size, cell):
+def init_hidden(config, batch_size, cell):
     layers = 1
-    if isinstance(cell, (nn.LSTM, nn.GRU, nn.LSTMCell, nn.GRUCell)):
+    if isinstance(cell, (nn.LSTM, nn.GRU)):
         layers = cell.num_layers
         if cell.bidirectional:
             layers = layers * 2

@@ -163,7 +163,7 @@ def repr_function(output, batch, VOCAB, LABELS, dataset):
     return results
 
 
-def batchop(datapoints, VOCAB, LABELS, *args, **kwargs):
+def batchop(datapoints, VOCAB, LABELS, config, *args, **kwargs):
     indices = [d.id for d in datapoints]
     story = []
     question = []
@@ -174,15 +174,15 @@ def batchop(datapoints, VOCAB, LABELS, *args, **kwargs):
         question.append([VOCAB[w] for w in d.q])
         answer.append(LABELS[d.a])
 
-    story    = LongVar(pad_seq(story))
-    question = LongVar(pad_seq(question))
-    answer   = LongVar(answer)
+    story    = LongVar(config, pad_seq(story))
+    question = LongVar(config, pad_seq(question))
+    answer   = LongVar(config, answer)
 
     batch = indices, (story, question), (answer)
     return batch
 
 
-def predict_batchop(datapoints, VOCAB, LABELS, *args, **kwargs):
+def predict_batchop(datapoints, VOCAB, LABELS, config, *args, **kwargs):
     indices = [d.id for d in datapoints]
     story = []
     question = []
@@ -191,8 +191,8 @@ def predict_batchop(datapoints, VOCAB, LABELS, *args, **kwargs):
         story.append([VOCAB[w] for w in d.story])
         question.append([VOCAB[w] for w in d.q])
 
-    story    = LongVar(pad_seq(story))
-    question = LongVar(pad_seq(question))
+    story    = LongVar(config, pad_seq(story))
+    question = LongVar(config, pad_seq(question))
 
     batch = indices, (story, question), ()
     return batch
@@ -201,7 +201,7 @@ def portion(dataset, percent):
     return dataset[ : int(len(dataset) * percent) ]
 
 def train(config, argv, name, ROOT_DIR,  model, dataset):
-    _batchop = partial(batchop, VOCAB=dataset.input_vocab, LABELS=dataset.output_vocab)
+    _batchop = partial(batchop, VOCAB=dataset.input_vocab, LABELS=dataset.output_vocab, config=config)
     predictor_feed = DataFeed(name, dataset.testset, batchop=_batchop, batch_size=1)
     train_feed     = DataFeed(name, portion(dataset.trainset, config.HPCONFIG.trainset_size),
                               batchop=_batchop, batch_size=config.CONFIG.batch_size)
@@ -372,7 +372,8 @@ def predict(config, argv, task, model, input_string, dataset):
         datapoints = [MacNetSample('0', 'story 1', 'question 1', 'task 1',
                              story_tokens, question_tokens, '')],
         VOCAB      = dataset.input_vocab,
-        LABELS     = dataset.output_vocab
+        LABELS     = dataset.output_vocab,
+        config     = config
     )
             
     output = model(input_)
