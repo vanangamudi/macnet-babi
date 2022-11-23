@@ -23,7 +23,7 @@ import torch
 
 from anikattu.utilz import initialize_task, tqdm
 
-from model.macnet_mod5 import MacNet
+from model.macnet import MacNet
 from utilz import load_data, train, multiplexed_train, predict
 
 import importlib
@@ -97,7 +97,10 @@ if __name__ == '__main__':
     log.info('vocab: {}'.format(pformat(dataset.output_vocab.freq_dict)))
     
     try:
-        model =  MacNet(config, 'macnet', len(dataset.input_vocab),  len(dataset.output_vocab))
+        model =  MacNet(embed_dim=5,
+                        hidden_dim=5,
+                        input_vocab_size=len(dataset.input_vocab),
+                        output_vocab_size = len(dataset.output_vocab))
         model_snapshot = '{}/weights/{}.{}'.format(ROOT_DIR, SELF_NAME, 'pth')
         model.load_state_dict(torch.load(model_snapshot))
         log.info('loaded the old image for the model from :{}'.format(model_snapshot))

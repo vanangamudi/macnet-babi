@@ -14,11 +14,11 @@ class Base(metaclass=ConfigMeta):
 class CONFIG(Base):
     split_ratio = 0.90
     dropout = 0.1
-    cuda = True
+    cuda = False
     multi_gpu = False
     tqdm = True
-    flush = True
-    batch_size = 50
+    flush = False
+    batch_size = 3
     plot_metrics = False
     
     CHECKPOINT = 1
