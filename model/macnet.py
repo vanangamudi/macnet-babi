@@ -32,8 +32,8 @@ class Base(nn.Module):
         self.log = logging.getLogger(__file__)
         self.size_log = logging.getLogger(__file__ + '.size')
         self.size_log.info('size_log')
-        self.log.setLevel(logging.DEBUG)
-        self.size_log.setLevel(logging.DEBUG)
+        self.log.setLevel(logging.CRITICAL)
+        self.size_log.setLevel(logging.CRITICAL)
         self.print_instance = 0
         
     def __(self, tensor, name='', print_instance=False):
@@ -59,11 +59,13 @@ class ControlUnit(Base):
         self.query_control = nn.Linear( 2 * hidden_dim, hidden_dim)
         self.attend = nn.Linear(hidden_dim, 1)
 
+        
     def forward(self, prev_control, prev_query, query_repr, memory, mask):
+        #import pdb; pdb.set_trace()
         cqi = self.__( self.query_control(
             torch.cat([prev_control, prev_query], dim=-1)), 'cqi')
             
-        cais = self.__( self.attend(cqi * query_repr_), 'cais')
+        cais = self.__( self.attend(cqi * query_repr), 'cais')
         cvis = self.__( torch.softmax(cais, dim=0), 'cvis')
         ci   = self.__( (cvis * query_repr).sum(dim=0), 'ci')
         return ci, cvis
@@ -152,7 +154,7 @@ class MacNet(Base):
             
         self.dropout = nn.Dropout(0.1)
 
-        self.produce_qi = nn.Linear(2*hidden_dim, hidden_dim)
+        self.produce_qi = nn.Linear(2 * hidden_dim, hidden_dim)
         
         self.control = ControlUnit (hidden_dim)
         self.read    = ReadUnit    (hidden_dim)
@@ -198,8 +200,11 @@ class MacNet(Base):
         mask = (story_mask, question_mask)
         
         c, m, r = [], [], []
-        c.append(torch.zeros((batch_size, 2 * self.hidden_dim)))
-        m.append(torch.zeros((batch_size, 2 * self.hidden_dim)))
+        c.append(torch.zeros((batch_size, self.hidden_dim)))
+        m.append(torch.zeros((batch_size, self.hidden_dim)))
+
+
+        
         qi = self.dropout(self.produce_qi(torch.cat([question[-1], m[-1]], dim=-1)))
 
         qattns, sattns, mattns = [], [], []

@@ -97,8 +97,8 @@ if __name__ == '__main__':
     log.info('vocab: {}'.format(pformat(dataset.output_vocab.freq_dict)))
     
     try:
-        model =  MacNet(embed_dim=5,
-                        hidden_dim=5,
+        model =  MacNet(embed_dim=config.HPCONFIG.embed_dim,
+                        hidden_dim=config.HPCONFIG.hidden_dim,
                         input_vocab_size=len(dataset.input_vocab),
                         output_vocab_size = len(dataset.output_vocab))
         model_snapshot = '{}/weights/{}.{}'.format(ROOT_DIR, SELF_NAME, 'pth')
